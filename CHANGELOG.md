@@ -1,6 +1,33 @@
 # Changelog
 
-All notable changes to `openplanr-pipeline` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/) — with the caveat that pre-1.0 releases may contain breaking changes in minor bumps.
+All notable changes to this plugin are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/) — with the caveat that pre-1.0 releases may contain breaking changes in minor bumps.
+
+> **NOTE:** This plugin has been **renamed** to `planr-pipeline`. The current ongoing development lives at <https://github.com/openplanr/planr-pipeline>. This `legacy/v0.6.x` branch hosts the v0.6.1 deprecation stub only.
+
+## [0.6.1] — 2026-04-30 — Deprecation stub
+
+This release does not add functionality. Both `/openplanr-pipeline:plan` and `/openplanr-pipeline:ship` are replaced with stubs that print a one-line redirect message:
+
+> This plugin has been renamed to `planr-pipeline`. Install via `/plugin install planr-pipeline@openplanr`.
+
+### Why
+
+The plugin was renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 to converge the brand on the `planr` CLI binary. v0.6.1 exists so anyone who pinned the old plugin name in their settings gets an explicit redirect instead of a confusing 404 or stale slash command.
+
+### Migration (30 seconds)
+
+```
+/plugin uninstall openplanr-pipeline
+/plugin install planr-pipeline@openplanr
+```
+
+The new plugin is byte-for-byte identical to v0.6.0 of this one.
+
+### Pairs with
+
+- [`planr-pipeline` v0.7.0](https://github.com/openplanr/planr-pipeline/releases/tag/v0.7.0) — the renamed plugin
+- [`openplanr` CLI v1.5.1](https://www.npmjs.com/package/openplanr) — generated rule filenames + slash commands updated
+- [`openplanr-skills` v1.4.0](https://github.com/openplanr/skills/releases/tag/v1.4.0) — routing tree aligned
 
 ## [0.6.0] — 2026-04-29
 
