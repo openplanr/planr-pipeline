@@ -71,11 +71,17 @@ Read these signals **without writing anything**:
 | `HAS_STACK` | `input/tech/stack.md` exists |
 | `BRIEF_STACK` | Inspect `BRIEF` for stack keywords. Classify as `node` / `non-node` / `none` |
 
-**`BRIEF_STACK` keyword classification:**
+**`BRIEF_STACK` keyword classification (case-insensitive substring match):**
 
-- `node` keywords (case-insensitive substring match): `Next.js`, `NestJS`, `Express`, `React`, `Vue`, `Nuxt`, `Remix`, `Astro`, `Hono`, `Fastify`, `tRPC`, `Node`, `npm`, `pnpm`, `yarn`, `Vitest`, `Jest`
-- `non-node` keywords: `Django`, `FastAPI`, `Rails`, `Laravel`, `Spring`, `Phoenix`, `Gin`, `Echo`, `ASP.NET`, `Flask`
+- `node` keywords:
+  - **Frameworks with canonical scaffolders:** `Next.js`, `NestJS`, `Vite`, `Nuxt`, `Astro`, `Remix`, `SvelteKit`, `Svelte`, `SolidStart`, `Solid`, `Hono`, `Fastify`, `Express`
+  - **Libraries / runtimes:** `React`, `Vue`, `Lit`, `tRPC`, `Node`, `Bun`, `Deno`
+  - **Tooling:** `npm`, `pnpm`, `yarn`, `Vitest`, `Jest`, `Playwright`, `Drizzle`
+- `non-node` keywords:
+  - `Django`, `FastAPI`, `Flask`, `Rails`, `Laravel`, `Spring`, `Phoenix`, `Gin`, `Echo`, `ASP.NET`, `.NET`, `Symfony`, `Sinatra`
 - `none`: BRIEF is empty OR contains neither set
+
+When BRIEF mentions a Node framework not in this list (e.g., a framework released after this list was authored), the model should still classify as `node` if the framework is clearly Node-ecosystem (built on Node runtime, distributed via npm). Reserve `non-node` for clearly non-JS-runtime stacks. The list is illustrative, not exhaustive.
 
 If `BRIEF` mentions both (rare hybrid stack), prefer `node` for the auto-scaffold path. Users on hybrid stacks can override by hand-authoring `stack.md` first.
 
@@ -115,28 +121,79 @@ Existing Node project, first-time planr install. **No scaffolding.**
 
 Greenfield directory + Node-stack brief. Intent is unambiguous. **Auto-scaffold without a consent prompt** — premium UX dictates the system act on clear intent.
 
-1. Print:
+**1. Identify the primary framework from `BRIEF`.**
 
-   ```
-   → State: scaffold-node
-     Scaffolding Next.js from your brief. ~2 min.
-     Press Esc to abort.
-   ```
+The "primary" framework is the one that defines the project shape — typically the first one mentioned, or the one most prominently described. Examples:
 
-2. Run scaffolding sequentially (Bash):
-   - `npx create-next-app@latest . --ts --tailwind --app --src-dir --import-alias "@/*" --no-eslint`
-     - **Runs in an empty dir → no conflicts.** This is the entire reason for the state-machine reorder.
-   - `npm i <production deps inferred from BRIEF>` (e.g., `prisma @prisma/client @anthropic-ai/sdk zod ioredis` if mentioned)
-   - `npm i -D <dev deps inferred from BRIEF>` (e.g., `vitest msw @testing-library/react` if mentioned)
-   - `npx prisma init --datasource-provider postgresql` if Prisma in `BRIEF`
+- "Next.js + Prisma + Postgres" → primary is **Next.js**
+- "NestJS + TypeORM + Postgres + Redis" → primary is **NestJS**
+- "Vite + React + Tailwind" → primary is **Vite (React)**
+- "Astro + Solid" → primary is **Astro**
 
-3. Print: `✓ Project scaffolded.`
-4. Apply common procedure `WRITE_PLANR_DIRS` on top of the now-scaffolded project
-5. Apply common procedure `AUTHOR_STACK_FROM_BRIEF`
-6. Print: `✓ Bootstrapped .planr/. Continuing to PO Phase.`
-7. Proceed to Step 1.
+If `BRIEF` mentions multiple top-level frameworks at the same level (rare hybrid), pick the one with a canonical CLI scaffolder. If still ambiguous, default to **Next.js** as the most common.
 
-If any scaffolding command fails (e.g., `create-next-app` flag changes in a future version), abort with a clear error message identifying the failed command. Do NOT improvise recovery (no `mv to /tmp` stash, no force flags). The user fixes the underlying issue and re-runs.
+**2. Announce.**
+
+```
+→ State: scaffold-node
+  Scaffolding <framework> from your brief. ~2 min.
+  Press Esc to abort.
+```
+
+**3. Run the framework's canonical scaffolder in the empty project root.**
+
+Apply these defaults (override only when `BRIEF` explicitly says otherwise):
+
+- TypeScript by default (`--ts`, `--typescript`, `--template <name>-ts`, etc.) — every modern Node project
+- Skip git init (`--no-git`, `--skip-git`) — git is already initialized at the project root
+- Pin npm (`--use-npm`, `--package-manager npm`) for consistency with the rest of the strategy
+- Skip auto-install (`--skip-install`) when the scaffolder offers it — we run `npm i` ourselves to be explicit about deps
+
+**Supported Node-ecosystem scaffolders** (the model is expected to know these from training, but they're documented here as the supported universe):
+
+| Framework | Canonical scaffold command |
+|---|---|
+| Next.js | `npx create-next-app@latest .` |
+| NestJS | `npx @nestjs/cli@latest new .` |
+| Vite (React / Vue / Svelte / Solid / Lit) | `npm create vite@latest .` |
+| Nuxt | `npx nuxi@latest init .` |
+| Astro | `npm create astro@latest .` |
+| Remix | `npx create-remix@latest .` |
+| SvelteKit | `npm create svelte@latest .` |
+| Hono | `npm create hono@latest .` |
+| SolidStart | `npm create solid@latest .` |
+| Fastify | (no canonical CLI — `npm init -y` + `npm i fastify` + minimal `src/server.ts`) |
+| Express (custom) | (no canonical CLI — `npm init -y` + `npm i express` + minimal `src/server.ts`) |
+
+For each scaffolder, apply the appropriate flag for each default above. If the brief mentions feature flags (e.g., "Tailwind", "App Router", "src dir"), include the corresponding scaffolder flag (`--tailwind`, `--app`, `--src-dir`). If the framework has no canonical CLI, fall back to the manual init pattern (npm init + install + minimal entry file).
+
+If the brief names a Node framework not on this list, the model should still attempt a sensible scaffold using the framework's documented quickstart commands — falling back to manual `npm init` if no clear pattern exists.
+
+**4. Install additional dependencies declared in `BRIEF`.**
+
+- Production: `npm i <deps>` for packages beyond what the scaffolder installed (e.g., `prisma @prisma/client`, `@anthropic-ai/sdk`, `ioredis`, `zod`, `stripe`)
+- Dev: `npm i -D <deps>` for testing + tooling (e.g., `vitest @vitest/ui msw @testing-library/react`)
+
+Group dependencies into a single `npm i` call where possible to avoid redundant resolver runs.
+
+**5. Run post-scaffold init commands implied by `BRIEF`.**
+
+- Prisma in BRIEF → `npx prisma init --datasource-provider <postgresql|mysql|sqlite|mongodb>`
+- Drizzle in BRIEF → no init needed; the schema file is hand-authored later by the backend-agent
+- Other tooling that requires explicit init → run accordingly
+
+**6. Print:** `✓ Project scaffolded.`
+
+**7. Apply common procedures** (in order):
+
+- `WRITE_PLANR_DIRS` (Step 0.7)
+- `AUTHOR_STACK_FROM_BRIEF` (Step 0.8)
+
+**8. Print:** `✓ Bootstrapped .planr/. Continuing to PO Phase.`
+
+**9. Proceed to Step 1.**
+
+**Error handling.** If any scaffolder command fails (network error, flag deprecation, package not found, unsupported Node version), abort with a clear error identifying the failed step + the underlying error message. **Do NOT improvise recovery** — no `mv to /tmp` stash, no force flags, no creative workarounds. The user fixes the underlying issue (network, Node version, etc.) and re-runs.
 
 #### Strategy: `ASK_MANUAL`
 

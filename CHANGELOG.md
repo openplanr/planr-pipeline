@@ -18,9 +18,11 @@ All notable changes to this plugin are documented here. The format follows [Keep
 |---|---|---|---|
 | ✅ | any | any | `CONTINUE` — skip Step 0, go to Step 1 |
 | ❌ | ✅ | any | `BOOTSTRAP_ONLY` — write `.planr/` on top of existing project |
-| ❌ | ❌ | `node` | `SCAFFOLD_NODE` — auto-scaffold Next.js, then bootstrap `.planr/` on top |
+| ❌ | ❌ | `node` | `SCAFFOLD_NODE` — identify framework from BRIEF, run its canonical scaffolder, then bootstrap `.planr/` on top |
 | ❌ | ❌ | `non-node` | `ASK_MANUAL` — clear instructions to scaffold + re-run |
 | ❌ | ❌ | `none` | `ASK_STACK` — clear instructions to declare a stack |
+
+`SCAFFOLD_NODE` is **framework-agnostic within the Node ecosystem.** It supports Next.js, NestJS, Vite (React/Vue/Svelte/Solid/Lit), Nuxt, Astro, Remix, SvelteKit, Hono, SolidStart, Fastify, Express, and any other Node framework the model identifies from BRIEF. The scaffolder command isn't hardcoded — the strategy documents the supported set + common defaults (TypeScript, no-git, npm), and the model picks the right canonical CLI for the framework BRIEF declares.
 
 ### Removed
 
