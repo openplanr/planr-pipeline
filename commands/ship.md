@@ -1,11 +1,21 @@
 ---
 description: Run the DEV Phase pipeline for a feature (frontend + backend agents per task, then qa, devops, doc-gen, then snapshot)
-argument-hint: <feature-name>
+argument-hint: <slug> [--task T-NNN] [--yes] [--no-devops] [--no-docs]
 ---
 
-# /planr-pipeline:ship {feature-name}
+# /planr-pipeline:ship {slug …}
 
-Orchestrates the DEV Phase for `feat-$ARGUMENTS`. Generates production code from PO-Phase task files, runs the qa-agent gate, optionally generates infra and docs, then refreshes `CLAUDE.md` via the snapshot skill.
+Orchestrates the DEV Phase for `feat-${SLUG}` (see **`commands/procedures/ship-arguments-and-cost-gate.md`** for flag stripping rules). Generates production code from PO-Phase task files, runs the qa-agent gate, optionally generates infra and docs, then refreshes `CLAUDE.md` via the snapshot skill.
+
+**Flags:**
+
+| Flag | Behaviour |
+|--|--|
+| **`--task T-NNN`** | Run DEV + QA/doc stages only for **`id: T-NNN`** frontmatter *(validated post mode-detection)*. |
+| **`--yes`** | Skip the COST **ESTIMATE** interactive gate (**still prints** the labelled estimate block once). |
+| **`--no-devops`**, **`--no-docs`** | Step 4 opt-outs unchanged. |
+
+Fatal errors obey **`fatal-error-format.md`**.
 
 **Per `${CLAUDE_PLUGIN_ROOT}/docs/rules.md` R1, this command MUST NOT be auto-chained from `/planr-pipeline:plan`.** A human review step is mandatory between PO Phase and DEV Phase.
 
@@ -17,72 +27,57 @@ Touch `.claude/.snapshot-pending` so the Stop hook (in `${CLAUDE_PLUGIN_ROOT}/ho
 
 ---
 
+## Step 0.5 — Parse argv (`ship-arguments-and-cost-gate.md` **Phase A**)
+
+Execute **`${CLAUDE_PLUGIN_ROOT}/commands/procedures/ship-arguments-and-cost-gate.md` → Phase A only** before anything that needs **`${SLUG}`**.
+
+---
+
 ## Step 1 — Mode detection + input validation
 
 ### 1a — Detect planr spec mode
 
-**Before any other checks**, look for `.planr/config.json` at the project root:
-
-1. If `.planr/config.json` exists AND its `idPrefix.spec` field is set, assume **planr spec-driven mode**.
-2. In spec-driven mode, scan `.planr/specs/` for a directory matching `^[A-Z]+-\d{3}-${ARGUMENTS}$`. The first match resolves to `SPEC_DIR = .planr/specs/<that-dir>`.
-3. Otherwise, fall through to **default mode** (`output/feats/feat-$ARGUMENTS/`).
-
-For the rest of this command, internally maintain `MODE = "spec-driven"` or `"default"`. All path references below switch based on MODE:
-
-| Concept | Default mode | Spec-driven mode |
-|---|---|---|
-| Feature root | `output/feats/feat-$ARGUMENTS/` | `<SPEC_DIR>/` |
-| US files | `output/feats/feat-$ARGUMENTS/us-*/us-*.md` | `<SPEC_DIR>/stories/US-*.md` |
-| Task files | `output/feats/feat-$ARGUMENTS/us-*/tasks/task-*.md` | `<SPEC_DIR>/tasks/T-*.md` |
-| Design spec | `output/feats/feat-$ARGUMENTS/design-spec.md` | `<SPEC_DIR>/design/design-spec.md` |
-| Error report | `output/feats/feat-$ARGUMENTS/us-{N}/tasks/error-report.md` | `<SPEC_DIR>/tasks/error-report.md` |
-| QA report | `output/feats/feat-$ARGUMENTS/qa-report.md` | `<SPEC_DIR>/qa-report.md` |
+Run procedure: `${CLAUDE_PLUGIN_ROOT}/commands/procedures/mode-detection.md` **using `${SLUG}` as the slug input variable** _(equivalent historically to stripping feature token from `$ARGUMENTS`)._ After it executes, `MODE` and (for spec-driven mode) `SPEC_DIR` / `FEAT_DIR` are bound. The procedure also handles the self-heal-on-missing-`stack.md` pathway and the path-resolution table.
 
 ### 1b — Validate required inputs
 
-Verify these exist (using mode-appropriate paths). Abort with a clear error if any are missing.
+The procedure file at `${CLAUDE_PLUGIN_ROOT}/commands/procedures/mode-detection.md` (section "Required inputs (per command) → /ship") covers the required-inputs validation for both modes. The procedure's "Conditional / recommended inputs" section also covers the design-spec.md / `output/db/schema.json` warnings for both modes. After it returns, continue **Step 1.5**.
 
-Required (default mode):
-- `output/feats/feat-$ARGUMENTS/` — fail with: "feat-$ARGUMENTS/ not found. Run /planr-pipeline:plan $ARGUMENTS first."
-- At least one `output/feats/feat-$ARGUMENTS/us-*/us-*.md`
-- At least one `output/feats/feat-$ARGUMENTS/us-*/tasks/task-*.md`
-- `input/tech/stack.md`
+### 1.5 — TASK binding re-check + COST ESTIMATE (**Phase B**)
 
-Required (spec-driven mode):
-- `<SPEC_DIR>/` — fail with: "Spec for slug '$ARGUMENTS' not found under .planr/specs/. Run \`planr spec create --slug $ARGUMENTS\` then \`planr spec decompose\` first."
-- At least one `<SPEC_DIR>/stories/US-*.md`
-- At least one `<SPEC_DIR>/tasks/T-*.md`
-- `input/tech/stack.md` — see **Self-healing in spec mode** below.
+Re-enter **`commands/procedures/ship-arguments-and-cost-gate.md` → Phase B** (TASK existence validation + COST block + conditional halt).
 
-### Self-healing in spec mode
+### 1.6 — Bind run manifest path *(append-only `.run-manifest.jsonl`, SPEC-008)*
 
-Same logic as `/plan`: when MODE is `spec-driven` AND `input/tech/stack.md` is missing, do not abort with a stack-missing error. Instead:
+After `MODE` / `SPEC_DIR` / `FEAT_DIR` are bound:
 
-1. **Copy** `${CLAUDE_PLUGIN_ROOT}/templates/stack.md.tpl` to `input/tech/stack.md` (creating `input/tech/` if absent).
-2. **Print:**
-   ```
-   ✓ Created input/tech/stack.md from template (pipeline self-heal)
-     Why: spec-driven mode detected, but input/tech/stack.md was missing.
-     Critical: BuildCommand and TestCommand drive the 3-iteration correction loop.
-               You MUST fill these in before /ship will work — empty values mean DEV
-               agents cannot validate their generated code.
-     Next: edit input/tech/stack.md, then re-run: /planr-pipeline:ship $ARGUMENTS
-   ```
-3. **Abort gracefully.** Do NOT invoke any subagent. Do NOT touch the source tree.
+| Mode | Manifest (`MANIFEST_PATH`) |
+|---|---|
+| Spec-driven | `<SPEC_DIR>/.run-manifest.jsonl` |
+| Default | `output/feats/feat-${SLUG}/.run-manifest.jsonl` |
 
-In default mode, missing `stack.md` continues to abort with guidance to copy from `${CLAUDE_PLUGIN_ROOT}/templates/stack.md.tpl` — no change.
+**Contract:** Append **one JSON object per newline** (JSONL). Validate each record against **`${CLAUDE_PLUGIN_ROOT}/schemas/v1.0.0/run-manifest.schema.json`**. **Append-only** — never truncate the file or erase prior rows.
 
-Recommended (mode-specific):
-- `output/db/schema.json` — warn if missing, continue (mode-agnostic).
-- Default mode: `output/feats/feat-$ARGUMENTS/design-spec.md` — warn if missing.
-- Spec-driven mode: `<SPEC_DIR>/design/design-spec.md` — warn if missing.
+Records include **`stage`**, **`agent`** (slug or **`null`**), **`started_at`/`ended_at`**, **`files_written`/`files_modified`** (arrays of repo-relative POSIX paths touched in that slice), **`exit_status`** (**`success`|`failure`|`skipped`**), **`error_summary`** (**`null` unless `failure`**), optional **`cost_hint`** surfaced read-only via **`/planr-pipeline:status`**.
+
+Emit at minimum:
+
+1. **`ship.bootstrap`** when Phase B clears entry into DEV (*`agent: null`* — starts last-run partitioning for **`/planr-pipeline:status`**);  
+2. **`ship.phase1`** after §**1b** inputs validate;  
+3. **`ship.task:<TASK_YAML_ID>`** per dispatched task (**success OR** `tasks/T-<YAML_ID>-error-report.md` after **R6**);  
+4. **`qa-gate`**, **`devops-bundle`**, **`doc-gen-bundle`** (**`exit_status: skipped`** when **`--no-devops`/`--no-docs` applies), **`snapshot`**, **`marker-write`**.
+
+Empty path lists ⇒ **`[]`**.
 
 ---
 
 ## Step 2 — Iterate User Stories in topological order
 
-In default mode, iterate each `us-{N}` directory under `output/feats/feat-$ARGUMENTS/` (sorted by US number).
+In default mode, iterate each `us-{N}` directory under `output/feats/feat-${SLUG}/` (sorted by US number).
+
 In spec-driven mode, iterate each `<SPEC_DIR>/stories/US-*.md` (sorted by ID); the corresponding tasks live in the *flat* `<SPEC_DIR>/tasks/` directory and reference their parent story via the `storyId` frontmatter field.
+
+If `$SHIP_TASK_ID` was bound during **Phase A**, **only** enqueue tasks whose frontmatter **`id`** matches that literal — skip all other tasks (even within the same US).
 
 For each story, run its tasks:
 
@@ -97,9 +92,9 @@ For each story, run its tasks:
    - Iteration 1: direct fix on build/test failure.
    - Iteration 2: re-read task spec + design-spec/schema, fix holistically.
    - Iteration 3: minimal safe fix, flag remaining issues.
-   - On 3rd failure: write `${CLAUDE_PLUGIN_ROOT}/templates/error-report.md`-shaped report:
-     - **Default mode:** `output/feats/feat-$ARGUMENTS/us-{N}/tasks/error-report.md`
-     - **Spec-driven mode:** `<SPEC_DIR>/tasks/error-report.md` (flat, since spec-driven tasks live in a single flat tasks/ dir)
+   - On 3rd failure: write `${CLAUDE_PLUGIN_ROOT}/templates/error-report.md`-shaped content to **`tasks/${TASK_ID}-error-report.md`** (same folder that holds task markdown), where **`TASK_ID` exactly matches YAML `id`** (pattern `^T-\\d{3}$` — e.g., `tasks/T-007-error-report.md`). **Never** write the legacy singleton `tasks/error-report.md`.
+     - **Default mode:** `output/feats/feat-${SLUG}/us-{N}/tasks/T-XXX-error-report.md`
+     - **Spec-driven mode:** `<SPEC_DIR>/tasks/T-XXX-error-report.md`
      - Then STOP that task.
 4. If a task fails after 3 iterations, ship continues with other independent tasks but flags the failed task in the final summary.
 
@@ -107,9 +102,11 @@ For each story, run its tasks:
 
 ## Step 3 — QA Gate (Step 3.5)
 
-After all US tasks complete (or fail with error-reports), delegate to the **qa-agent** subagent.
+After all dispatched US/task paths complete *(or halt after per-task **`T-*-error-report.md`** handoffs)*, delegate to the **qa-agent** subagent.
 
-The qa-agent verifies, for each task:
+When **`--task`** targeted a subset, qa-agent **still runs**, but verifies **only** tasks that executed this turn **plus any companion tasks whose outputs are mandatory for local Build/Test coherence** *(default: strict subset flagged by orchestrator).* At minimum **every dispatched task MUST be audited.**
+
+The qa-agent verifies, for each **in-scope** task:
 - All "Create" files exist
 - All "Modify" files were updated (and only as described)
 - All "Preserve" files are unchanged (git diff vs base)
@@ -122,10 +119,10 @@ If QA fails: flag the failure in summary; **still proceed to Step 5 snapshot** s
 
 ## Step 4 — DevOps + Doc-Gen Agents (Step 3.5, parallel, optional)
 
-These run only if QA passes. Skipped via `--no-devops` / `--no-docs` flags in $ARGUMENTS.
+These run only if QA passes **and** `$SHIP_SKIP_DEVOPS` / `$SHIP_SKIP_DOCS` booleans *(from Phase A bindings)* honor these opt-outs individually.
 
 - Delegate to the **devops-agent** subagent — generates `docker-compose.yml`, `.env.example`, Dockerfiles, and CI config matching the stack. Per non-goals: this subagent **does NOT deploy** (enforced at the tool layer — the agent has no Bash access).
-- Delegate to the **doc-gen-agent** subagent — writes `Docs/feat-$ARGUMENTS/` from the US, tasks, and generated source code.
+- Delegate to the **doc-gen-agent** subagent — writes `Docs/feat-${SLUG}/` from the US, tasks (+ execution notes when `--task` ran), and generated source code *(doc-gen ALWAYS runs unless `--no-docs`; targeted ship still owes updated docs).* 
 
 ---
 
@@ -145,7 +142,7 @@ Refresh `CLAUDE.md` at the project root with the current project state. Read the
    - Read `status` from US frontmatter
 4. **Active Agents** — list all agents in `${CLAUDE_PLUGIN_ROOT}/agents/*.md`, with model assignments and tool restrictions.
 5. **Build Log** — append the latest build / test outcomes (from this `/ship` run). **Append-only — never truncate prior entries.**
-6. **Known Issues / Escalations** — scan all `error-report.md` files (any task that hit the 3-iteration limit). For each: feature, US, task, agent, suspected root cause, recommended action.
+6. **Known Issues / Escalations** — recursively scan **`T-*-error-report.md`** beside task trees (never the legacy singleton `error-report.md`). For each failure handoff enumerate: feature, US, task id, agent role, suspected root cause, remediation bullet.
 7. **Stack Summary** — embed full content of `input/tech/stack.md`.
 
 ### Snapshot integrity rules
@@ -176,7 +173,7 @@ The Stop hook in `${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json` is a backup: if this c
 
 After Step 5 succeeds, write a marker file recording the pipeline run.
 
-**Default mode:** `output/feats/feat-$ARGUMENTS/.pipeline-shipped`
+**Default mode:** `output/feats/feat-${SLUG}/.pipeline-shipped`
 **Spec-driven mode:** `<SPEC_DIR>/.pipeline-shipped`
 
 Contents (YAML):
@@ -185,7 +182,7 @@ Contents (YAML):
 shipped_at: "<ISO 8601 UTC timestamp>"
 pipeline_version: "<from ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json>"
 mode: "<default | spec-driven>"
-feature: "$ARGUMENTS"
+feature: "${SLUG}"
 tasks_executed: <integer>
 tasks_failed: <integer>
 qa_gate_status: "<passed | failed | skipped>"
@@ -199,7 +196,7 @@ agents_invoked:
 devops_status: "<generated | skipped>"
 docs_status: "<generated | skipped>"
 snapshot_status: "<refreshed | skipped>"
-error_reports:               # paths to any error-report.md files; empty list if none
+error_reports:               # paths to any T-<NNN>-error-report.md files; empty list if none
   - <path>
 ```
 
@@ -211,11 +208,11 @@ If Step 5 (snapshot) failed but tasks shipped, still write the marker with
 ## Step 6 — Print summary
 
 ```
-✓ DEV Phase complete for feat-$ARGUMENTS
+✓ DEV Phase complete for feat-${SLUG}
   Mode:            <default | spec-driven>
-  Output dir:      <output/feats/feat-$ARGUMENTS/ | .planr/specs/SPEC-NNN-$ARGUMENTS/>
+  Output dir:      <output/feats/feat-${SLUG}/ | .planr/specs/SPEC-NNN-${SLUG}/>
   Tasks succeeded: X / Y
-  Tasks failed:    Z (see error-report.md files)
+  Tasks failed:    Z (see T-<NNN>-error-report.md paths)
   QA gate:         <passed | failed>
   DevOps config:   <generated | skipped>
   Docs:            <generated | skipped>
@@ -225,7 +222,7 @@ If Step 5 (snapshot) failed but tasks shipped, still write the marker with
 
 If spec-driven mode was active, the spec's frontmatter `status` is updated to `in-pipeline` while ship runs and to `done` on full success.
 
-If any task failed, list paths to the error-report.md files.
+If any task failed, enumerate every **`T-<NNN>-error-report.md`** path produced.
 
 ---
 
@@ -233,7 +230,7 @@ If any task failed, list paths to the error-report.md files.
 
 | Condition | Action |
 |-----------|--------|
-| feat folder missing | Abort, suggest `/planr-pipeline:plan $ARGUMENTS` |
+| feat folder missing | Abort, suggest `/planr-pipeline:plan ${SLUG}` |
 | No tasks | Abort, suggest re-run of PO Phase |
 | Single task fails 3x | Continue with other tasks, surface in summary |
 | All tasks fail | Skip QA + DevOps + Doc-Gen; still run snapshot to record state |
