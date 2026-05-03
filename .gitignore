@@ -1,0 +1,10 @@
+# Dependencies (any depth — fixtures run `npm ci` locally / in CI)
+node_modules/
+
+# Append-only pipeline run logs (SPEC-008)
+*.run-manifest.jsonl
+
+# Transient sentinel from /ship Step 0 (never commit)
+.claude/.snapshot-pending
+
+.DS_Store
