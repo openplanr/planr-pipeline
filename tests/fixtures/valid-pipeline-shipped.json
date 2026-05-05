@@ -3,7 +3,7 @@
   "pipeline_version": "0.7.3",
   "runtime": "claude-code",
   "mode": "spec-driven",
-  "feature": "test-coverage-tier-1-and-2",
+  "feature": "todo-app",
   "tasks_executed": 4,
   "tasks_failed": 0,
   "qa_gate_status": "passed",

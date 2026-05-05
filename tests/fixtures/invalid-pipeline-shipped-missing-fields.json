@@ -2,7 +2,7 @@
   "shipped_at": "2026-05-04T00:00:00Z",
   "pipeline_version": "0.7.3",
   "runtime": "claude-code",
-  "feature": "test-coverage-tier-1-and-2",
+  "feature": "todo-app",
   "tasks_executed": 4,
   "qa_gate_status": "passed"
 }

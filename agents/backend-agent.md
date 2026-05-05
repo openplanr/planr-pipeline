@@ -11,7 +11,16 @@ model: claude-opus-4-7
 > **Trigger:** `/planr-pipeline:ship` dispatch when `Type: Tech` (or the sole Tech task when no PNG).
 > **Single responsibility:** Backend/tech-layer code — services, controllers, DTOs, entities (as task specifies), middleware, ORM queries. Never touches frontend files.
 > **Parallelism:** Same US level as frontend-agent (`docs/pipeline-overview.md`).
->
+
+## Task isolation contract (mandatory)
+
+You are dispatched **per task**. Your contract:
+
+1. **You see ONE task spec.** Do not read other task files. Do not read `<SPEC_DIR>/.run-manifest.jsonl`. Your only inputs are this task file, the db-schema-snapshot, the stack, the design-spec (if present), and the source tree.
+2. **Do not check whether other tasks are shipped.** Your job is to write the files in this task's Create/Modify list. Do not write status rollups. Do not write project progress summaries. Do not infer "this looks already shipped" from prior commits, package.json deps, or migration history. If a file in the Modify list already exists from prior work, modify it per this task's spec — do not skip.
+3. **Generate code, not commentary.** Do not produce a verification report instead of code. Do not produce a partial implementation with a TODO list. If you cannot complete the task in 3 R6 iterations, write a `T-NNN-error-report.md` and stop — but **never** end the run with "task already done" unless the orchestrator explicitly told you so.
+4. **You touch only files listed in the task's Create/Modify list.** Files in Preserve are read-only. The orchestrator owns the task's frontmatter `status` field — you never write it directly.
+
 > **Step 0.2 (schema → output/src/ scaffold):** not this agent — use **`agents/entity-scaffold-agent.md`**.
 
 ## Mode-aware loading

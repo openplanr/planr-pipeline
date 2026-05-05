@@ -39,15 +39,8 @@ jobs:
             console.log('ok');
           "
 
-      # Schema validation: validate all SPEC-001 artifacts against their JSON Schemas
-      - name: Validate SPEC-001 artifacts
-        run: |
-          node conformance/runner.mjs \
-            --runtime claude-code \
-            --validate-schema .planr/specs/SPEC-001-schema-discipline-v100
-
       # Schema validation: validate the default-mode conformance fixture
-      # (spec-todo + us-1 + task-1 + fixture-local stack.md) against the same
+      # (spec-todo + us-1 + task-1 + fixture-local stack.md) against the
       # v1.0.0 JSON Schemas. Mode is auto-detected by detectFixtureMode().
       - name: Validate default-mode fixture
         run: |

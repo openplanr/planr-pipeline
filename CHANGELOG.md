@@ -66,9 +66,76 @@ Project root `input/tech/stack.md` now declares `schemaVersion: "1.0.0"` so sche
 - Thin `commands/plan.md` plus new `commands/procedures/plan-step0-preflight.md`, `plan-step1-mode-and-spec.md`, `plan-steps-2-through-completion.md`.
 - Existing `strategy-*.md`, `stage-design-assets.md`, `restore-design-assets.md` procedure files finalized as authoritative strategy bodies extricated from `/plan`.
 
+### Added — Run manifest + per-task error reports (SPEC-008)
+
+`/planr-pipeline:ship` now appends a JSONL audit trail to `<SPEC_DIR>/.run-manifest.jsonl` (spec-driven) or `output/feats/feat-{slug}/.run-manifest.jsonl` (default). One record per orchestration boundary — `ship.bootstrap`, `ship.phase1`, `ship.task:T-NNN`, `qa-gate`, `devops-bundle`, `doc-gen-bundle`, `snapshot`, `marker-write` — with `started_at`, `ended_at`, `files_written`, `files_modified`, `exit_status`, `error_summary`, optional `cost_hint`. Manifest validates against `schemas/v1.0.0/run-manifest.schema.json` (additionalProperties: false, ISO-8601 timestamps).
+
+Per-task R6 failures now write to `<SPEC_DIR>/tasks/T-NNN-error-report.md` (matching the YAML `id` field) — never the legacy singleton `tasks/error-report.md`. `qa-agent` reads per-task reports by ID; `templates/error-report.md` documents the convention as canonical.
+
+`/planr-pipeline:status` reads the manifest when present and surfaces per-stage timing + cost cues. The manifest is git-ignored by default (`*.run-manifest.jsonl` in `.gitignore`).
+
+#### Files touched (SPEC-008)
+
+- `commands/ship.md` — Step 1.6 binds manifest path; emission contract documented.
+- `schemas/v1.0.0/run-manifest.schema.json` — JSON Schema draft 2020-12.
+- `agents/{frontend,backend,qa}-agent.md` + `templates/error-report.md` — per-task error filename convention.
+- `commands/plan.md` (status command) — manifest read + timing surface.
+- `.gitignore` — `*.run-manifest.jsonl`.
+
+### Added — Task status state machine + cross-runtime resume
+
+T-task frontmatter now carries a `status` field with enum `pending | in-progress | done | blocked` (validated by `schemas/v1.0.0/task.schema.json`). `/ship` Step 2 reads each task's status on entry, partitions the queue, and writes status updates inline as the pipeline progresses:
+
+- `done` → skip (already shipped)
+- `pending` → enqueue (fresh)
+- `in-progress` → enqueue + recover (prior run crashed mid-task)
+- `blocked` → enqueue + retry (prior R6 wrote `T-NNN-error-report.md`; new attempt re-reads it)
+
+Before dispatch: status flips to `in-progress` + `updated:` bumped. On success: `done`. On R6 failure: `blocked` with companion error report.
+
+This is the foundation for **resume semantics across invocations, sessions, machines, and runtimes**: re-running `/ship` on the same spec naturally picks up where the prior run left off — the source of truth is the task file frontmatter, not the orchestrator's memory.
+
+### Added — Runtime adapter detection + per-task dispatch mode (`DISPATCH_MODE`)
+
+`/ship` Step 1.7 binds `RUNTIME` from the environment:
+
+- `claude-code` — `${CLAUDE_PLUGIN_ROOT}` resolves
+- `cursor` — `.cursor/rules/planr-pipeline.mdc` exists at project root
+- `codex` — `AGENTS.md` at root contains `## Planr Pipeline Orchestration`
+- `unknown` — none of the above
+
+`/ship` Step 1.8 selects `DISPATCH_MODE` accordingly:
+
+| Runtime | Default `DISPATCH_MODE` |
+|---|---|
+| `claude-code` | `multi-task` (manifest-isolated subagents per task — no cumulative-context bias) |
+| `cursor` / `codex` | `per-task` (one task per invocation; the Composer/persona session can't safely isolate per-task context across many tasks) |
+
+In `per-task` mode, `/ship` dispatches one task (oldest `pending`, otherwise oldest `blocked`), closes its status to `done` or `blocked`, and prints:
+
+```
+⏸ Task T-NNN dispatched (success | blocked).
+  Remaining: N task(s) {pending: A, blocked: B}.
+  Run /planr-pipeline:ship {slug} again to continue.
+```
+
+The user re-invokes per task. The status field on each T-task naturally encodes "where to continue" without any state outside the spec directory.
+
+**Override:** `--all-tasks` forces `multi-task` regardless of runtime (advanced — only when the runtime supports isolated subagents).
+
+**Why this fix exists:** v0.7.x users on Cursor reported `/ship` producing a status rollup instead of generating code on partially-shipped specs. Root cause: Cursor's Composer is one continuous session — without per-task fresh invocation, prior tasks' context biased the model toward "this looks already shipped." The runtime-aware default is the architectural cure.
+
+#### Files touched (status + dispatch)
+
+- `commands/ship.md` — new Steps 1.7 (`RUNTIME`), 1.8 (`DISPATCH_MODE`), restructured Step 2 (status-aware queue + dispatch loop + status state machine).
+- `agents/{frontend,backend}-agent.md` — task isolation contract pushes back on cumulative-context bias ("you see ONE task spec, do not write status rollups, generate code not commentary").
+- `docs/compatibility-matrix.md` — new capability rows + dispatch-mode caveat section.
+
 ### Migration
 
 None. No user action required. Existing projects continue to work in whichever mode they were using.
+
+T-task files written by older specification-agent runs that lack the `status` field will be treated as `pending` on first read in v0.8.0. The pipeline will not retroactively rewrite them — author your migration via `planr task status set <T-NNN> <state>` if you want explicit state, or just let `/ship` write the field on next dispatch.
 
 ### Pairs with
 
