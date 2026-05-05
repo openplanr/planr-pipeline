@@ -8,3 +8,6 @@ node_modules/
 .claude/.snapshot-pending
 
 .DS_Store
+
+# OpenPlanr's own dogfooding workspace — internal sprint planning, not part of plugin distribution
+.planr/
