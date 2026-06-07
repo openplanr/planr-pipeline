@@ -4,6 +4,28 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [0.14.1] — 2026-06-07
+
+### Fixed — generated designs now match the real app (shell, design system, desktop viewport)
+
+Generated screens were rendering as a generic, narrow card on gray — not a real desktop view,
+and ignoring the host app's shell and design system. The generate procedure only said "fill
+the shell with realistic content"; it never told the generator to ground the design in the
+target app. Added **`design-step2-generate.md` § C.0**:
+
+- **Read + embed the app shell.** Find the app's layout/chrome (`app/layout.*`, `src/App.*`,
+  `components/{Layout,Shell,Sidebar,Nav,Header,Topbar}.*`) and render each screen **inside it**
+  (real sidebar/nav/header), not as a free-floating card (cards are only for genuine modals).
+- **Match the real design system.** Read `DESIGN.md`, the CSS/Tailwind theme, the
+  `ComponentLibrary`/`FrontendFramework` from `input/tech/stack.md`, and 1–2 existing
+  screens; match the real colors, type scale, spacing, radii, and components.
+- **Design at the real viewport.** Desktop web app → **full-bleed ~1440px** (not a narrow
+  card in empty space); responsive → the app's breakpoints (375/768/1024/1440).
+
+Also raised the walkthrough gallery's max width 1280px → **1680px** so a real ~1440px desktop
+screen fits without being squished, and reinforced the same guidance in the prototype +
+walkthrough shell generator contracts.
+
 ## [0.14.0] — 2026-06-07
 
 ### Fixed — `/design` no longer silently invents a spec; asks + adds standalone exploration
