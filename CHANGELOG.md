@@ -4,7 +4,27 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
-## [0.14.1] — 2026-06-07
+## [0.15.0] — 2026-06-07
+
+### Added — design-craft rubric + mandatory self-review (professional polish)
+
+Generated designs made amateur craft mistakes — inconsistent sizing (e.g. an `error` pill and
+a `warn` pill different heights), off-scale spacing, sloppy alignment. The generate step had no
+craft discipline and no forcing function to re-examine its own output. Two native additions
+(learned from the MIT UI-UX-Pro-Max skill's execution rules + universal craft, encoded
+in-plugin — **no external dependency**):
+
+- **`agents/modes/shared/design-craft-rubric.md`** — single-sourced rules the generator applies
+  *as it builds*: one spacing scale (no arbitrary `13px`/`17px`), **same-type elements the same
+  size** (every pill/badge/button/card/input in a group identical), grid/baseline alignment, a
+  consistent type scale, AA contrast (≥4.5:1), SVG icons (never emoji), `:focus-visible` +
+  150–300ms hover, `prefers-reduced-motion`.
+- **`design-step2-generate.md` § C.4.5 — mandatory self-review pass.** Before finalizing, the
+  generator **audits its own artifact** against the rubric's checklist (especially sizing
+  consistency, spacing, alignment) and **fixes every violation in place** — the forcing function
+  that turns a first-draft layout into a professional one. (We pick the *execution* discipline
+  from UI-UX-Pro-Max, not its style-selection engine, because `/design` matches the existing
+  app's design system, not a fresh industry palette.)
 
 ### Fixed — generated designs now match the real app (shell, design system, desktop viewport)
 
