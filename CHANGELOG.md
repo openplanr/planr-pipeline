@@ -4,6 +4,19 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [Unreleased]
+
+### Added — `/planr-pipeline:status` with no slug = whole-project delivery report
+
+`/status` was slug-only (pipeline marker + story/task counts for one feature). With **no slug** it
+now produces the **whole-project delivery report** — every Spec / Backlog item / Quick Task rolled
+up by status (done · promoted/superseded · outstanding) with GitHub PR + Linear cross-references and
+an **Outstanding work** section. Architecture: **delegate-first** — when the planr CLI is installed
+the command runs `planr status --md` verbatim (one deterministic engine, the two surfaces can't
+drift; the engine lives in the CLI's `delivery-status-service`); without the CLI it composes the
+same report shape natively from `.planr/` frontmatter (read-only, never inventing a status, PR
+correlation via `gh` labeled best-effort). The slug path is unchanged.
+
 ## [0.18.0] — 2026-06-08
 
 ### Added — a project design system + a "no-system → ask" gate (designs continue one feel)
