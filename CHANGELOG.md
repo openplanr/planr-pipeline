@@ -8,7 +8,7 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 ### Added — the Design Loop Engine (`/design-loop` + `/design-review`)
 
-An interactive, immersive design-iteration system — gstack's design-shotgun flow
+An interactive, immersive design-iteration system — a proven design-shotgun flow
 generalized for ANY design target, plus a planr-native pin-review loop over generated
 artifacts. Zero npm dependencies (`lib/design-engine/`, plain Node ESM).
 
@@ -142,13 +142,13 @@ No generation change — preview behavior only. Recompiled into the vendored `De
 
 ### Changed — brand hygiene (proprietary product)
 
-A DevEx review found a foreign host-runtime brand woven through the canvas: the editing /
-persistence bridge was named `window.omelette` (plus a `data-omelette-chrome` attribute), and a
-few comments referenced other projects by codename. Renamed to a neutral proprietary handle —
-**`window.__canvasHost`** + `data-dc-chrome` — and dropped the `muvi` / `gstack` references from
+A DevEx review found third-party project names woven through the canvas: the editing /
+persistence bridge and a chrome attribute carried a foreign host-runtime's name, and a few
+comments referenced other projects by codename. Renamed to neutral proprietary handles —
+**`window.__canvasHost`** + `data-dc-chrome` — and dropped the codename references from
 comments and the README. (The vendored **Pretext** text-reflow runtime keeps its name, like
 React — it's an attributed third-party dependency, not our brand.) A new conformance check fails
-the build if any foreign brand reappears in the shipped design assets.
+the build if any of those names reappears in the shipped design assets.
 
 `npm test` → 73 green + conformance. Skill stays **1.8.0**.
 
@@ -282,7 +282,7 @@ they never asked for (and inconsistently — other runs aborted on the same cond
 no-spec case is a **mandatory `AskUserQuestion`** (same enforcement as Phase B):
 
 - **A) Create a spec** — scaffold `SPEC-NNN-<slug>` as the home (explicit, user-chosen) → the planned-feature path `/plan` can consume.
-- **B) Standalone exploration** — design only, into a new **`.planr/designs/<slug>/`** location; **no tracked spec is created**. (Mirrors gstack `design-html`'s spec-less design.)
+- **B) Standalone exploration** — design only, into a new **`.planr/designs/<slug>/`** location; **no tracked spec is created**. (Mirrors the reference skill's spec-less design.)
 - **C) Cancel.**
 
 `--yes` assumes **standalone** (non-polluting); it never silently creates a spec. The Phase-D
@@ -305,7 +305,7 @@ genuinely unresolvable.
 The Phase B clarification described the source/format question in prose ("if unset, ask"),
 which the model could rationalize away — in practice it would **auto-decide format/source
 from the brief and proceed** ("proceeding without further questions since your brief is
-explicit"), never issuing a real prompt. Ported gstack's enforcement into
+explicit"), never issuing a real prompt. Ported the reference implementation's enforcement into
 `procedures/design-step1-clarify.md` (+ `commands/design.md`): Phase B is now a **mandatory
 `AskUserQuestion` tool call** when the relevant flag is absent —
 
@@ -319,7 +319,7 @@ explicit"), never issuing a real prompt. Ported gstack's enforcement into
   `BLOCKED — AskUserQuestion unavailable` — never silently default.
 
 There is no system trigger that "invokes" the question — the model must choose to call the
-tool, so the fix is forceful, gstack-style instruction that removes the skip rationalization.
+tool, so the fix is forceful, explicit instruction that removes the skip rationalization.
 
 ## [0.13.3] — 2026-06-07
 
