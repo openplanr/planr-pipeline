@@ -4,6 +4,49 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [0.19.0] — 2026-06-10
+
+### Added — the Design Loop Engine (`/design-loop` + `/design-review`)
+
+An interactive, immersive design-iteration system — gstack's design-shotgun flow
+generalized for ANY design target, plus a planr-native pin-review loop over generated
+artifacts. Zero npm dependencies (`lib/design-engine/`, plain Node ESM).
+
+- **`/planr-pipeline:design-loop {target}`** — logos, brand sheets, screens, OG images:
+  taste-aware concept list (anti-convergence enforced) → a **mandatory concept gate before
+  any spend** → N parallel variant subagents (structured `VARIANT_X_DONE/FAILED/RATE_LIMITED`
+  reports, tmp→cp, quality gate + one retry, sequential fallback) → a live localhost
+  **board** → file-handshake feedback → session-chained iteration → approval. R1: stops at
+  approval.
+- **Provider abstraction with graceful degradation** — `openai` (Responses API +
+  `image_generation`/gpt-image-2; iterate via `previous_response_id` so feedback *refines*;
+  gpt-4o vision quality gate) and **`claude-svg`** (always available, $0: the agent authors
+  exact SVG sheets against a validated contract — for logos/UI often better than diffusion).
+  Auth: `~/.planr/credentials.json` → env (with the **silent-billing disclosure** when the
+  key also sits in the cwd `.env`, + a not-gitignored warning) → guided `setup` with a real
+  smoke test and printed proof. Keys are never echoed.
+- **Board daemon v2** — persistent localhost server, board registry, `BOARD_URL:` stderr
+  line, in-tab reload, per-board mutex; **pin-comments** (normalized region annotations
+  with `fix|improve|question` intent), **versions rail with A/B slider diff**, **live
+  per-variant progress** (file-driven `progress.json`), the proven approve bar. One
+  self-contained HTML, no CDN, works offline.
+- **`/planr-pipeline:design-review {slug}`** — serves an existing `finalized.html`/
+  `canvas.html` through the board; every pin auto-maps to its screen/section; **only the
+  pinned screen is regenerated** (HTML edits through the design system's tokens); the lint
+  gate stays 0-error; on approve `finalized.json.iterations` bumps, the changed
+  `design-spec.md` sections sync, and a `design.review` record lands in
+  `.run-manifest.jsonl`.
+- **Taste memory** — per-project profile updated on BOTH approve and reject; 5%/week
+  confidence decay computed at read time; profile↔brief conflicts flagged, never silently
+  resolved.
+- **Schemas** (`design-feedback` incl. pins, `design-session`, `taste-profile`,
+  `design-approved`) — every engine read/write validates.
+- **Tests:** 121 unit (auth order + disclosure, session chaining, submit-vs-pending +
+  consume-on-read, pin clamping, taste decay math, provider fallback, mocked OpenAI
+  provider, sheet-contract validation) + a **full mocked-loop conformance** run
+  (`conformance/verify-design-loop.mjs`, $0, no network). Docs: `docs/design-loop.md`
+  (daemon protocol, feedback handshake, provider interface, 5-minute demo).
+
 ## [0.18.1] — 2026-06-10
 
 ### Added — `/planr-pipeline:status` with no slug = whole-project delivery report
