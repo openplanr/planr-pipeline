@@ -20,18 +20,22 @@ The planr **CLI is the deterministic engine** for this report (`planr status`,
 `src/services/delivery-status-service.ts`); the plugin **delegates** to it so the two surfaces can
 never drift. Only when the CLI is absent do you compose the same report natively.
 
-**A.1 — Delegate when the CLI is installed (preferred).**
+**A.1 — Delegate when the CLI is installed AND new enough (preferred).**
 
 ```bash
-command -v planr || command -v opr
+command -v planr && planr --version
 ```
 
-If found, run **`planr status --md`** (add `--github` / `--linear` only if the user explicitly asked
-for live cross-referencing) and print its output **verbatim**. Done — do not re-derive or "improve"
-the numbers; one engine, one truth.
+The delivery report shipped in CLI **1.7.2** — an older `planr` would print the legacy tree
+instead. Delegate **only when the version is ≥ 1.7.2** (compare with
+`printf '%s\n1.7.2\n' "$(planr --version)" | sort -V | head -1` → must print `1.7.2`). If so, run
+**`planr status --md`** (add `--github` / `--linear` only if the user explicitly asked for live
+cross-referencing) and print its output **verbatim**. Done — do not re-derive or "improve" the
+numbers; one engine, one truth.
 
-**A.2 — Fallback (no CLI): compose the same report from disk.** Read-only, deterministic — never
-invent a status:
+**A.2 — Fallback (no CLI, or CLI < 1.7.2): compose the same report from disk.** Read-only,
+deterministic — never invent a status. When falling back because the CLI is outdated, append one
+line: `Tip: npm i -g openplanr@latest enables the native engine (planr status --md).`
 
 1. **Enumerate** (mode per `procedures/mode-detection.md`):
    - Specs: `.planr/specs/SPEC-*/SPEC-*.md` frontmatter → `id`, `title`, `status`
