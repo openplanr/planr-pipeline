@@ -57,3 +57,14 @@ test('pipeline-shipped marker rejects negative tasks_executed', () => {
   const errors = validate(negative, schema);
   assert.ok(errors.length > 0, 'expected tasks_executed minimum:0 violation');
 });
+
+test('pipeline-shipped marker accepts optional dispatch_style native | workflow, and omitted', () => {
+  assert.equal(validate(valid, schema).length, 0, 'omitted dispatch_style is valid (optional)');
+  assert.equal(validate({ ...valid, dispatch_style: 'native' }, schema).length, 0);
+  assert.equal(validate({ ...valid, dispatch_style: 'workflow' }, schema).length, 0);
+});
+
+test('pipeline-shipped marker rejects dispatch_style outside enum [native, workflow]', () => {
+  const errors = validate({ ...valid, dispatch_style: 'turbo' }, schema);
+  assert.ok(errors.length > 0, 'expected dispatch_style enum violation');
+});
