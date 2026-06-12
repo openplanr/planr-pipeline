@@ -22,10 +22,15 @@ test('pipeline-shipped marker fails when required fields (mode, tasks_failed, du
   assert.ok(errors.length > 0);
 });
 
-test('pipeline-shipped marker rejects runtime not in enum [claude-code, cursor, codex]', () => {
+test('pipeline-shipped marker rejects runtime not in enum [claude-code, cursor, codex, unknown]', () => {
   const badRuntime = { ...valid, runtime: 'aider' };
   const errors = validate(badRuntime, schema);
   assert.ok(errors.length > 0, 'expected runtime enum violation');
+});
+
+test('pipeline-shipped marker accepts runtime "unknown" (Step 1.7 fail-safe still writes a marker)', () => {
+  const errors = validate({ ...valid, runtime: 'unknown' }, schema);
+  assert.equal(errors.length, 0, 'unknown is a valid runtime value');
 });
 
 test('pipeline-shipped marker rejects mode other than default | spec-driven', () => {

@@ -93,9 +93,9 @@ For every ready task `T` in `${TASKS}` (ready = all `dependsOn` entries have `st
 
 ---
 
-## Section 5 — Determinism & replay guarantees
+## Section 5 — Final-state determinism
 
-This procedure is deterministic: identical inputs (same task set, same `dependsOn` edges) always produce the same dispatch outcome.
+This procedure gives **final-state** determinism: identical inputs (same task set, same `dependsOn` edges) always produce the same shipped *state* — the same tasks done/blocked, the same dependency ordering honored. It does **not** guarantee a reproducible dispatch *schedule*: native style is prompt-driven (the model emits the `Agent` calls), so the relative order and timing of independent tasks within a ready set are not fixed. A runtime-enforced, replayable *schedule* is exactly what the `workflow` dispatch style adds on top (the host's Workflow tool schedules the declared DAG) — see `commands/ship.md` §2b-workflow.
 
 1. **`dependsOn` is the only ordering input.** A task dispatches once every task in its `dependsOn` list is `done`. Tasks with no declared dependency are dispatched as soon as they are ready, in no enforced relative order — the host's native concurrency cap is the only throttle.
 2. **Single-writer status & manifest.** Task `.md` `status` fields and `.run-manifest.jsonl` are written only by the orchestrator (Section 3), so concurrent agents cannot race on shipped-state bookkeeping (FR9).

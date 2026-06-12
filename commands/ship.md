@@ -1,6 +1,6 @@
 ---
 description: Run the DEV Phase pipeline for a feature (frontend + backend agents per task, then qa, devops, doc-gen, then snapshot)
-argument-hint: <slug> [--task T-NNN] [--yes] [--no-devops] [--no-docs]
+argument-hint: <slug> [--task T-NNN] [--yes] [--no-devops] [--no-docs] [--workflow|--native] [--all-tasks]
 ---
 
 # /planr-pipeline:ship {slug …}
@@ -11,9 +11,11 @@ Orchestrates the DEV Phase for `feat-${SLUG}` (see **`procedures/ship-arguments-
 
 | Flag | Behaviour |
 |--|--|
-| **`--task T-NNN`** | Run DEV + QA/doc stages only for **`id: T-NNN`** frontmatter *(validated post mode-detection)*. |
-| **`--yes`** | Skip the COST **ESTIMATE** interactive gate (**still prints** the labelled estimate block once). |
+| **`--task T-NNN`** | Run DEV + QA/doc stages only for **`id: T-NNN`** frontmatter *(validated post mode-detection)*. Forces `single-task`. |
+| **`--yes`** | Skip the COST **ESTIMATE** interactive gate (**still prints** the labelled estimate block once); implies dispatch style `native`. |
 | **`--no-devops`**, **`--no-docs`** | Step 4 opt-outs unchanged. |
+| **`--workflow`** / **`--native`** | Pre-select the Claude Code multi-task dispatch *style* (host-scheduled DAG vs free native fan-out); skips the B.3 style prompt. Ignored on cursor/codex/unknown. |
+| **`--all-tasks`** | Force `multi-task` on a host that can run parallel subagents. |
 
 Fatal errors obey **`fatal-error-format.md`**.
 
@@ -45,7 +47,7 @@ The procedure file at `${CLAUDE_PLUGIN_ROOT}/procedures/mode-detection.md` (sect
 
 ### 1.5 — TASK binding re-check + COST ESTIMATE (**Phase B**)
 
-Re-enter **`procedures/ship-arguments-and-cost-gate.md` → Phase B** (TASK existence validation + COST block + the **B.3 AskUserQuestion confirmation gate** — a clickable Ship/Narrow/Skip-extras/Cancel prompt, never a typed magic word; `--yes` skips it).
+Re-enter **`procedures/ship-arguments-and-cost-gate.md` → Phase B** (TASK existence validation + COST block + the **B.3 AskUserQuestion confirmation gate** — a clickable spend-confirmation prompt, never a typed magic word, that on Claude Code multi-task also offers the **free-native vs structured-workflow** dispatch choice; `--yes` skips it and defaults to `native`).
 
 ### 1.6 — Bind run manifest path *(append-only `.run-manifest.jsonl`, SPEC-008)*
 
@@ -198,9 +200,9 @@ Entered only when `DISPATCH_MODE == multi-task`. `per-task` / `single-task` neve
 
 When `DISPATCH_STYLE == workflow`, drive the **Workflow tool** instead of hand-emitting `Agent` calls. planr **declares** the graph; the host **schedules** it. Do NOT revive a planr-side scheduler, worktrees, or waves — that machinery was deleted in SPEC-014 and must not return; determinism comes from the host's Workflow tool, not from planr.
 
-1. **Stamp the full eligible set** exactly as native step 3 (`stamp(E)`), before invoking the workflow.
-2. **Author one workflow** whose nodes are the feature's tasks and whose edges are the `dependsOn` graph (`pipeline`/`parallel` so independent tasks run concurrently and a dependent waits on its dependency's node). Each node dispatches the task's agent with the §2c per-task prompt and **returns a structured result** (success + files touched, or R6-blocked + one-line error). Nodes do **not** write status or manifest.
-3. **Commit bookkeeping from the returned results** (orchestrator, single-writer): per node result, close the task frontmatter (`done` / `blocked` + `T-<id>-error-report.md`) and its manifest record. FR12/FR13 hold — the schedule is the host's, the writes are still the orchestrator's.
+1. **Pre-stamp EVERY feature task** (the whole live set — NOT `stamp(E)`, which is roots-only), before authoring the workflow: for each task T → frontmatter `status: in-progress`, `updated: <today>`; append manifest `{ stage: "ship.task:<T.id>", agent: "<T.agent>", started_at: <now>, exit_status: "pending" }`. Stamping all tasks up front is correct here (unlike native, which rolls forward) because the whole DAG commits to run in this one orchestrator turn — a mid-workflow crash then leaves dependents at `in-progress` (which §2a recovers) rather than at `pending`, indistinguishable from never-started. This also gives every manifest record its schema-required `started_at`.
+2. **Author one workflow** whose nodes are the feature's tasks and whose edges are the `dependsOn` graph (`pipeline`/`parallel` so independent tasks run concurrently and a dependent waits on its dependency's node). Each node dispatches the task's agent with the §2c per-task prompt and **returns a structured result**: `{ id, status: done|blocked, ended_at, files_written[], files_modified[], errorReport? }` — where `errorReport` (present only when `blocked`) is the FULL `${CLAUDE_PLUGIN_ROOT}/templates/error-report.md`-shaped body (per-pass attempt log + file lists + suspected root cause), so the orchestrator can write it verbatim. Nodes do **NOT** write status or manifest themselves.
+3. **Commit bookkeeping from the returned results** (orchestrator, single-writer): per node result, close the task frontmatter (`done`, or `blocked` + write `T-<id>-error-report.md` verbatim from the node's `errorReport`) and close its manifest record (`exit_status`, `ended_at` from the node, `files_written`/`files_modified` populated). FR12/FR13 hold — the schedule is the host's, the writes are still the orchestrator's, and every record carries `started_at` (step 1) + `ended_at` (the node).
 
 **Termination (both styles).** When the queue drains, fall through to **Step 3 (QA Gate)** — it audits every task that ran this invocation (NFR1; wide dispatch speeds DEV, it never weakens QA).
 
@@ -313,7 +315,7 @@ Contents (YAML):
 ```yaml
 shipped_at: "<ISO 8601 UTC timestamp>"
 pipeline_version: "<from ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json>"
-runtime: "<claude-code | cursor | codex>"   # ${RUNTIME} from Step 1.7
+runtime: "<claude-code | cursor | codex | unknown>"   # ${RUNTIME} from Step 1.7 (unknown = fail-safe)
 mode: "<default | spec-driven>"
 feature: "${SLUG}"
 tasks_executed: <integer>
