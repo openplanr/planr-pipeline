@@ -68,14 +68,17 @@ For each task file:
        - Build genuinely emits no CSS file ⇒ record "build-lint: no compiled CSS produced" and
          rely on 8a + 8c (do not invent a pass).
    8c. PALETTE FIDELITY (off-palette colours) — the real token check. Blocking on a literal
-       violation. Build allowed = the §1 hex palette (normalize case + #). Scan the task's
-       shipped styles AND the compiled CSS for hex colour LITERALS; a literal hex NOT in §1
-       (excluding transparent/inherit/currentColor) is OFF-PALETTE ⇒ FAIL, listing it
-       ("shipped #3a7bd5; not in design-spec §1"). This catches a screen painting a colour the
-       design never specified, WITHOUT false-failing a screen for the palette roles it
-       legitimately didn't use, and it is indirection-safe (var(--x) / theme keys / utility
-       classes resolve to palette tokens, so they never trip it). Likewise flag a font-family
-       literal absent from §2 (system fallbacks excepted).
+       violation. Build allowed = the §1 palette, NORMALIZED (lower-case; expand 3-digit hex
+       #fff→#ffffff). Scan the task's shipped styles AND the compiled CSS for colour LITERALS in
+       ANY form — hex (#rgb / #rrggbb), rgb()/rgba(), hsl()/hsla(), oklch() — and normalize each
+       the same way before comparing, so #fff matches #ffffff and an rgb()/hsl() equal to a
+       palette hex is NOT a false miss. A literal that resolves to a colour NOT in §1 (excluding
+       transparent/inherit/currentColor and alpha-only variants of a palette colour) is
+       OFF-PALETTE ⇒ FAIL, listing it ("shipped #3a7bd5; not in design-spec §1"). This catches a
+       screen painting a colour the design never specified, WITHOUT false-failing a screen for
+       the palette roles it legitimately didn't use, and it is indirection-safe (var(--x) / theme
+       keys / utility classes resolve to palette tokens, so they never trip it). Likewise flag a
+       font-family literal absent from §2 (system fallbacks excepted).
    8d. Write a `### Design Fidelity` block to qa-report.md per feature / UI task: artifact
        structure (valid / gaps / n/a) · build-lint (clean / N errors / no-CSS) · palette
        (clean / off-palette list). Any structural gap, build-lint ERROR, or off-palette literal

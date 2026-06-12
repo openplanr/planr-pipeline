@@ -92,6 +92,11 @@ test('font-not-token warns against a known design system only', () => {
   assert.ok(!noDs.warnings.some((w) => w.rule === 'font-not-token'), 'no DS → cannot judge fonts');
 });
 
+test('off-grid spacing expressed in rem/em is caught (normalized to px at 16px root)', () => {
+  assert.equal(lintDesign('<style>.a{padding:0.8125rem}</style>').errors.some((e) => e.rule === 'spacing-off-grid'), true, '0.8125rem = 13px is off-grid');
+  assert.equal(lintDesign('<style>.a{padding:1rem;gap:0.5rem}</style>').errors.length, 0, '1rem/0.5rem = 16px/8px are on-grid');
+});
+
 test('lintDesign reports a declarations count (0 when no <style>/inline CSS is present)', () => {
   assert.equal(lintDesign('.a{padding:13px}').declarations, 0, 'raw CSS (no <style>) parses to zero declarations');
   assert.ok(lintDesign('<style>.a{padding:16px;color:#111}</style>').declarations >= 2, 'real <style> CSS parses declarations');
