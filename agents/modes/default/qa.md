@@ -23,6 +23,7 @@ Tool restrictions are mode-agnostic — Write is still granted only for the qa-r
 | Generated source code under `src/` (project root) | Frontend/Backend Agents | Yes |
 | `input/tech/stack.md` (BuildCommand, TestCommand) | Tech Lead | Yes |
 | `output/feats/feat-{name}/us-*/tasks/T-*-error-report.md` | Frontend/Backend Agents | Conditional |
+| `output/feats/feat-{name}/design-spec.md` | Designer Agent / `/design` | Conditional — Type=UI features (drives the Design Fidelity gate) |
 
 ---
 
@@ -61,6 +62,7 @@ Tool restrictions are mode-agnostic — Write is still granted only for the qa-r
 - **Preserve files:** [untouched | modified: list]
 - **DoD checklist:** X/Y satisfied — [list failures]
 - **Tests:** [pass | failures: list]
+- **Design Fidelity (Type=UI):** tokens [✓ | missing: list] · rendered-lint [clean | N error(s) | skipped | n/a]
 - **`T-<TASK_ID>-error-report.md`:** [absent | present — link path]
 
 ## Overall Verdict
@@ -82,6 +84,7 @@ or
    b. Verify file presence and non-emptiness
    c. Verify Preserve list integrity (git diff or stat compare)
    d. Walk DoD checklist
+   e. DESIGN FIDELITY (Type=UI tasks, when output/feats/feat-$ARGUMENTS/design-spec.md exists): run qa-agent.md system-prompt step 8 — (a) token conformance: design-spec §1-3 tokens must appear in the task's shipped styles; (b) rendered design-lint via `node "${CLAUDE_PLUGIN_ROOT}/lib/design/lint.mjs"` on emitted screen HTML / shipped styles. FAIL the task on a token miss or a lint ERROR; record the `### Design Fidelity` line.
 3. Run input/tech/stack.md::BuildCommand
 4. Run input/tech/stack.md::TestCommand
 5. Aggregate findings into output/feats/feat-$ARGUMENTS/qa-report.md
