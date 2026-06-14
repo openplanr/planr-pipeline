@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync } from 'node:fs';
-import { writeFile } from 'node:fs/promises';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -8,29 +7,10 @@ import { test } from 'node:test';
 
 import { createWatcher } from '../../lib/dashboard/watcher.mjs';
 
-/** Build a task-file body with a given status (so successive writes "change" it). */
-function taskFile(id, status) {
-  return [
-    '---',
-    `id: "${id}"`,
-    `title: "${id} task"`,
-    'specId: "SPEC-001"',
-    'type: "Tech"',
-    'agent: "backend-agent"',
-    `status: "${status}"`,
-    '---',
-    '',
-    `# ${id}`,
-    '',
-  ].join('\n');
-}
-
 test('watcher debounces a burst of writes into exactly one patch', async () => {
   const home = mkdtempSync(join(tmpdir(), 'planr-watch-'));
   const planrDir = join(home, '.planr');
-  const tasksDir = join(planrDir, 'specs', 'SPEC-001', 'tasks');
-  mkdirSync(tasksDir, { recursive: true });
-  const taskPath = join(tasksDir, 'T-001-thing.md');
+  const DEBOUNCE_MS = 80;
 
   // Capture which scope the engine is asked to recompute, and how many patches fire.
   const scopes = [];
@@ -46,7 +26,8 @@ test('watcher debounces a burst of writes into exactly one patch', async () => {
   };
 
   // Stub buildGraph: records the `scope` it was given, and returns a graph whose
-  // single node's status flips each call so every recompute is a real diff.
+  // single node's status flips each call so every recompute is a real diff. The
+  // watcher never reads the filesystem here, so no real file writes are needed.
   let call = 0;
   const stubBuildGraph = (_dir, opts = {}) => {
     scopes.push(opts.scope ?? null);
@@ -66,7 +47,7 @@ test('watcher debounces a burst of writes into exactly one patch', async () => {
   };
 
   const watcher = createWatcher(planrDir, {
-    debounceMs: 80,
+    debounceMs: DEBOUNCE_MS,
     onPatch: (p) => patches.push(p),
     initialGraph: { nodes: [], edges: [] },
     buildGraph: stubBuildGraph,
@@ -77,19 +58,18 @@ test('watcher debounces a burst of writes into exactly one patch', async () => {
     watcher.start();
     assert.ok(typeof listener === 'function', 'watcher should have registered an fs listener');
 
-    // Write the same task file three times within ~150ms; signal each write to
-    // the watcher (the real fs.watch would emit one event per save).
-    await writeFile(taskPath, taskFile('T-001', 'todo'));
-    listener('change', 'specs/SPEC-001/tasks/T-001-thing.md');
-    await delay(20);
-    await writeFile(taskPath, taskFile('T-001', 'in-progress'));
-    listener('change', 'specs/SPEC-001/tasks/T-001-thing.md');
-    await delay(20);
-    await writeFile(taskPath, taskFile('T-001', 'done'));
-    listener('change', 'specs/SPEC-001/tasks/T-001-thing.md');
+    // Fire a burst of three save events SYNCHRONOUSLY (no await between them) so
+    // they are guaranteed to land in the same debounce window regardless of how
+    // loaded the runner is — any `await delay()` shorter than the window can be
+    // stretched past it under CI contention, which would (wrongly) split the
+    // burst into multiple patches. The watcher must coalesce them into one.
+    const rel = 'specs/SPEC-001/tasks/T-001-thing.md';
+    listener('change', rel);
+    listener('change', rel);
+    listener('change', rel);
 
-    // Wait past the debounce window for the single coalesced flush.
-    await delay(160);
+    // Wait comfortably past the debounce window for the single coalesced flush.
+    await delay(DEBOUNCE_MS * 3);
 
     // Exactly one patch event for the burst of three writes.
     assert.equal(patches.length, 1, `expected one coalesced patch, got ${patches.length}`);
