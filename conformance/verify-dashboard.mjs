@@ -7,8 +7,10 @@
  * surfaces obey the project's hard constraints:
  *
  *   (a) palette fidelity — every hex color used in lib/dashboard/ and
- *       docs/dashboard.md is one of the design-system tokens (.planr/design-system/);
- *       any off-palette value exits 1 with the offending file + hex.
+ *       docs/dashboard.md is one of the design tokens declared in ds.css's
+ *       TOKEN DEFINITION BLOCK (the committed palette source of truth, which
+ *       mirrors design-spec.md §1); any off-palette value exits 1 with the
+ *       offending file + hex.
  *   (b) brand hygiene — no third-party product codenames appear in any scanned
  *       file (fragment-assembled denylist, same approach as verify-design-assets).
  *   (c) schema presence — schemas/v1.0.0/graph.schema.json exists and parses as JSON.
@@ -68,10 +70,17 @@ function normHex(raw) {
 }
 
 function loadPalette() {
-  const tokensPath = join(root, '.planr', 'design-system', 'tokens.css');
-  const css = readFileSync(tokensPath, 'utf-8');
+  // The dashboard's palette source of truth is the TOKEN DEFINITION BLOCK at the
+  // top of ds.css (its :root + .dark custom-property declarations) — the only
+  // place raw hex is allowed. Deriving the allowed palette from that committed
+  // block keeps this check self-contained and deterministic; the dogfooding
+  // .planr/design-system/ that ds.css mirrors is gitignored and absent on CI.
+  const dsPath = join(root, 'lib', 'dashboard', 'app', 'ds.css');
+  const css = readFileSync(dsPath, 'utf-8');
+  const end = css.indexOf('END TOKEN DEFINITION BLOCK');
+  const block = end === -1 ? css : css.slice(0, end);
   const set = new Set();
-  for (const m of css.match(HEX_RE) || []) set.add(normHex(m));
+  for (const m of block.match(HEX_RE) || []) set.add(normHex(m));
   return set;
 }
 
@@ -90,7 +99,7 @@ try {
   assert(palette.size > 0, `design-system token palette loaded (${palette.size} colors)`);
 } catch (e) {
   palette = new Set();
-  bad('design-system tokens.css is readable', String(e && e.message ? e.message : e));
+  bad('ds.css token definition block is readable', String(e && e.message ? e.message : e));
 }
 
 const offPalette = [];
