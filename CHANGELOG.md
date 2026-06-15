@@ -4,6 +4,24 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [0.21.3] — 2026-06-15
+
+### Fixed — board rendered HTML/canvas artifacts as images (broken thumbnail + blank compare)
+
+The board rendered artifacts as `<img>` in two places that never checked the
+type — the **Versions** thumbnail and the **A/B compare** view. For an HTML/canvas
+artifact (e.g. `canvas.html` in a design review) the browser can't load the file
+as an image, so the version thumbnail showed a broken icon and — worse —
+entering A/B compare replaced the working artifact with a blank frame and broken
+`base`/`compare` images, making the design look missing. (The artifact itself was
+always intact; the normal view already used an `<iframe>`.)
+
+- **Version thumbnail** now type-guards the file like the Variants rail: SVG →
+  `<object>`, raster (png/jpg/webp) → `<img>`, else (html/canvas) → `◈`.
+- **A/B compare** is now type-aware: image/SVG keep the clip-slider; HTML/canvas
+  versions render as two live `<iframe>`s side by side (A | B) — never a broken
+  `<img>`, and actually useful for comparing two design iterations.
+
 ## [0.21.2] — 2026-06-15
 
 ### Fixed — the board daemon now restarts onto new code (capability-URL fix lands)
