@@ -22,6 +22,22 @@ always intact; the normal view already used an `<iframe>`.)
   versions render as two live `<iframe>`s side by side (A | B) — never a broken
   `<img>`, and actually useful for comparing two design iterations.
 
+### Fixed — `/plan` now schema-validates its output (no more silently-invalid tasks)
+
+The specification-agent could emit a frontmatter value outside the schema — it wrote
+`status: "ready"`, which isn't in the task enum (`pending | in-progress | done |
+blocked`). Nothing validated generated artifacts at decomposition time, so `/ship` later
+partitioned its queue by status, matched nothing, and reported "nothing to dispatch": a
+green gate you couldn't trust.
+
+- **`/plan` schema gate (Phase C)** now runs the shipped validator
+  (`conformance/runner.mjs --validate-schema <dir>`) over the spec + every `stories/US-*.md`
+  + every `tasks/T-*.md` after decomposition, and **hard-fails** on any violation, naming
+  the offending file + field. Deterministic — not the LLM checking itself.
+- **specification-agent** now inlines the `status` enum and requires newly decomposed
+  tasks to be `status: "pending"` (no `ready`/`todo`/`open` synonyms), plus the
+  `type`↔`agent` correlation.
+
 ## [0.21.2] — 2026-06-15
 
 ### Fixed — the board daemon now restarts onto new code (capability-URL fix lands)
