@@ -60,7 +60,7 @@
     },
     "authors": {
       "type": "array",
-      "description": "SPEC-017: the roster of reviewers who contributed to this board. Each appears once, keyed by display name. Identity is a LOCAL display name + deterministic avatar only — no account, no auth, no PII.",
+      "description": "the roster of reviewers who contributed to this board. Each appears once, keyed by display name. Identity is a LOCAL display name + deterministic avatar only — no account, no auth, no PII.",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -97,12 +97,12 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "SPEC-017: stable item id (12-char sha256 hex prefix of author+createdAt+comment). The merge key together with `author`; assigned by normalizeLegacy for legacy items."
+            "description": "stable item id (12-char sha256 hex prefix of author+createdAt+comment). The merge key together with `author`; assigned by normalizeLegacy for legacy items."
           },
           "author": {
             "type": "string",
             "minLength": 1,
-            "description": "SPEC-017: the reviewer who created this pin (display name). Legacy/unattributed items normalize to \"Anonymous\"."
+            "description": "the reviewer who created this pin (display name). Legacy/unattributed items normalize to \"Anonymous\"."
           },
           "variant": {
             "type": "string",
@@ -122,11 +122,11 @@
           "status": {
             "type": "string",
             "enum": ["open", "addressed", "resolved"],
-            "description": "SPEC-017: lifecycle of the pin as tracked feedback. Defaults to \"open\" when absent."
+            "description": "lifecycle of the pin as tracked feedback. Defaults to \"open\" when absent."
           },
           "createdAt": {
             "type": "string",
-            "description": "SPEC-017: ISO timestamp the pin was created (also feeds the stable id)."
+            "description": "ISO timestamp the pin was created (also feeds the stable id)."
           },
           "screen": {
             "type": "string",
@@ -134,12 +134,17 @@
           },
           "replies": {
             "type": "array",
-            "description": "SPEC-017: short threaded replies on this pin so feedback is a tracked conversation, not a write-once note.",
+            "description": "short threaded replies on this pin so feedback is a tracked conversation, not a write-once note.",
             "items": {
               "type": "object",
               "additionalProperties": false,
               "required": ["author", "comment"],
               "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "optional stable reply id (the reply-level merge key). Absent on legacy/optimistic replies; mergeFeedback() falls back to a content signature (author+comment+createdAt) so the append/dedup stays idempotent without it."
+                },
                 "author": {
                   "type": "string",
                   "minLength": 1,
