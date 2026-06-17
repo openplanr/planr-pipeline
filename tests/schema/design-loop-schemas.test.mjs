@@ -25,8 +25,8 @@ const validFeedback = {
   overall: 'lean into B, darker indigo',
   regenerated: false,
   pins: [
-    { variant: 'B', x: 0.42, y: 0.1, w: 0.2, h: 0.08, comment: 'kern the wordmark tighter', intent: 'fix' },
-    { variant: 'A', x: 0.5, y: 0.5, w: 0, h: 0, comment: 'what font is this?', intent: 'question', screen: 's-hero' },
+    { id: 'a1b2c3d4e5f6', author: 'Dana', variant: 'B', x: 0.42, y: 0.1, w: 0.2, h: 0.08, comment: 'kern the wordmark tighter', intent: 'fix' },
+    { id: 'f6e5d4c3b2a1', author: 'Dana', variant: 'A', x: 0.5, y: 0.5, w: 0, h: 0, comment: 'what font is this?', intent: 'question', screen: 's-hero' },
   ],
 };
 

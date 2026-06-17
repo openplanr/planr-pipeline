@@ -58,14 +58,52 @@
       "type": "object",
       "description": "Remix instructions, e.g. { layoutFrom: \"A\", colorsFrom: \"B\", note }. Open shape; interpreted by the loop procedure."
     },
+    "authors": {
+      "type": "array",
+      "description": "SPEC-017: the roster of reviewers who contributed to this board. Each appears once, keyed by display name. Identity is a LOCAL display name + deterministic avatar only — no account, no auth, no PII.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Reviewer display name (the merge + avatar key)."
+          },
+          "color": {
+            "type": "string",
+            "description": "Avatar background token/value derived deterministically from the name (e.g. \"--avatar-3\")."
+          },
+          "initials": {
+            "type": "string",
+            "description": "1–2 letter initials shown in the avatar."
+          },
+          "lastSeen": {
+            "type": "string",
+            "description": "ISO timestamp the author last contributed."
+          }
+        }
+      }
+    },
     "pins": {
       "type": "array",
       "description": "Region annotations — the core of \"fix exactly this part\".",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["variant", "x", "y", "w", "h", "comment", "intent"],
+        "required": ["id", "author", "variant", "x", "y", "w", "h", "comment", "intent"],
         "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "SPEC-017: stable item id (12-char sha256 hex prefix of author+createdAt+comment). The merge key together with `author`; assigned by normalizeLegacy for legacy items."
+          },
+          "author": {
+            "type": "string",
+            "minLength": 1,
+            "description": "SPEC-017: the reviewer who created this pin (display name). Legacy/unattributed items normalize to \"Anonymous\"."
+          },
           "variant": {
             "type": "string",
             "minLength": 1,
@@ -81,9 +119,43 @@
             "enum": ["fix", "improve", "question"],
             "description": "How the agent should treat the pin."
           },
+          "status": {
+            "type": "string",
+            "enum": ["open", "addressed", "resolved"],
+            "description": "SPEC-017: lifecycle of the pin as tracked feedback. Defaults to \"open\" when absent."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "SPEC-017: ISO timestamp the pin was created (also feeds the stable id)."
+          },
           "screen": {
             "type": "string",
             "description": "design-review only: the artifact screen/section id the pin maps to (e.g. \"s-dashboard\")."
+          },
+          "replies": {
+            "type": "array",
+            "description": "SPEC-017: short threaded replies on this pin so feedback is a tracked conversation, not a write-once note.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["author", "comment"],
+              "properties": {
+                "author": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Reviewer who wrote the reply (display name)."
+                },
+                "comment": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Reply text."
+                },
+                "createdAt": {
+                  "type": "string",
+                  "description": "ISO timestamp the reply was written."
+                }
+              }
+            }
           }
         }
       }
