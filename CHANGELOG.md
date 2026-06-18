@@ -25,6 +25,16 @@ be the long-running, harness-tracked process.
 - `board`'s own detached-spawn is untouched as the fallback for real terminals; no behaviour change
   there.
 
+### Fixed — canvas screens stand at the device viewport again (smart height, not collapse/clip)
+
+A v0.24.0 change made each canvas artboard size to its **content** height, so short screens
+collapsed to ~400px and the board looked broken — screens no longer met a standard viewport.
+The artboard frame now uses the device frame as a **minimum** height (`min-height`), so every
+screen floors at its canonical viewport — Desktop 1440×1024, Tablet 834×1194, Mobile 390×844 —
+and **grows** if its content is taller (never collapsed, never clipped). Verified live: a short
+screen renders at the full 1024 frame, a 1500px screen grows to 1500. (`DesignCanvas` frame +
+vendored build.)
+
 ## [0.24.1] — 2026-06-18
 
 ### Fixed — review board is now the clean single-surface design (no legacy leftovers)
