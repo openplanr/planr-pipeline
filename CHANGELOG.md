@@ -4,6 +4,27 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [0.24.2] — 2026-06-18
+
+### Fixed — design boards come up cleanly in one step (no daemon-launch fumble)
+
+Serving a `/design-review` or `/design-loop` board was slow and fragile inside an agent runtime:
+`cli.mjs board` spawned the daemon as a **detached child** of the short-lived `board` command, and
+a sandboxed runtime reaps that child the moment the command exits — so the daemon died right after
+printing its URL, and the agent had to discover (over several attempts) that the daemon itself must
+be the long-running, harness-tracked process.
+
+- **New `cli.mjs daemon` command.** `daemon --status` reports whether a board daemon is already
+  running (port / pid / version); `daemon --serve` reuses a healthy one (prints `DAEMON_PORT:` and
+  exits) or boots one and stays up — meant to be launched **once** as a background task. `board`
+  then reuses it (`ensureDaemon` was already reuse-first), so every board + reload after is instant.
+- **Serve procedures updated** (`design-review-loop.md`, `design-loop-step3-board.md`) to the robust
+  order — check `daemon --status`, launch `daemon --serve` as a background task if needed, then
+  `board` — with a note on why (a sandbox reaps detached children). The blocking review/approve
+  handshake is unchanged.
+- `board`'s own detached-spawn is untouched as the fallback for real terminals; no behaviour change
+  there.
+
 ## [0.24.1] — 2026-06-18
 
 ### Fixed — review board is now the clean single-surface design (no legacy leftovers)
