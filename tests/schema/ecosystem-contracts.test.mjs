@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { validate } from '../../conformance/json-schema-validate.mjs';
 
-const root = new URL('../..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
 const schema = (name) => readJson(`schemas/v1.1.0/${name}.schema.json`);
 
