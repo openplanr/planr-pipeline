@@ -1,9 +1,39 @@
 {
-  "name": "planr-pipeline",
-  "version": "0.24.10",
-  "private": true,
+  "name": "@openplanr/pipeline",
+  "version": "0.25.0",
+  "private": false,
   "type": "module",
-  "description": "OpenPlanr Protocol — Claude Code plugin conformance + docs",
+  "description": "OpenPlanr complete PO, Design, DEV, QA, and delivery pipeline",
+  "main": "./lib/pipeline/index.mjs",
+  "exports": {
+    ".": "./lib/pipeline/index.mjs"
+  },
+  "bin": {
+    "planr-pipeline": "./bin/planr-pipeline.mjs"
+  },
+  "files": [
+    "adapters/",
+    ".claude-plugin/",
+    "agents/",
+    "bin/",
+    "commands/",
+    "conformance/",
+    "docs/protocol/",
+    "hooks/",
+    "lib/",
+    "procedures/",
+    "registry/",
+    "schemas/",
+    "scripts/doctor.mjs",
+    "stacks/",
+    "templates/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "engines": {
     "node": ">=20"
   },
@@ -20,7 +50,7 @@
     "conformance:design-loop": "node conformance/verify-design-loop.mjs",
     "conformance:dashboard": "node conformance/verify-dashboard.mjs",
     "test:schema": "node --test tests/schema/*.test.mjs",
-    "test:orchestration": "node --test tests/orchestration/*.test.mjs",
+    "test:orchestration": "node --test tests/orchestration/*.test.mjs tests/ecosystem/*.test.mjs tests/pipeline/*.test.mjs",
     "test:design": "node --test tests/design/*.test.mjs",
     "conformance:design": "node conformance/verify-design-assets.mjs"
   }
