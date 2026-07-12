@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 import {
@@ -79,25 +79,27 @@ test('discovers arbitrarily named checkouts from OpenPlanr git remotes', () => {
 });
 
 test('workspace root precedence is CLI, environment, then pipeline parent', () => {
-  const pipelineRoot = '/workspace/repos/planr-pipeline';
+  const pipelineRoot = resolve('/workspace/repos/planr-pipeline');
+  const cliRoot = resolve('/cli-root');
+  const environmentRoot = resolve('/env-root');
 
   assert.deepEqual(
     resolveWorkspaceRoot({
       pipelineRoot,
-      argv: ['--workspace-root', '/cli-root'],
-      env: { OPENPLANR_ECOSYSTEM_ROOT: '/env-root' },
+      argv: ['--workspace-root', cliRoot],
+      env: { OPENPLANR_ECOSYSTEM_ROOT: environmentRoot },
     }),
-    { path: '/cli-root', source: 'cli' },
+    { path: cliRoot, source: 'cli' },
   );
   assert.deepEqual(
     resolveWorkspaceRoot({
       pipelineRoot,
-      env: { OPENPLANR_ECOSYSTEM_ROOT: '/env-root' },
+      env: { OPENPLANR_ECOSYSTEM_ROOT: environmentRoot },
     }),
-    { path: '/env-root', source: 'environment' },
+    { path: environmentRoot, source: 'environment' },
   );
   assert.deepEqual(resolveWorkspaceRoot({ pipelineRoot, env: {} }), {
-    path: '/workspace/repos',
+    path: dirname(pipelineRoot),
     source: 'default',
   });
 });
