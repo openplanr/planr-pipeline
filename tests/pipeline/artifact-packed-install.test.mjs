@@ -74,13 +74,8 @@ test('packed 0.26.0 package contains the portable artifact release boundary', ()
   ], { cwd: installRoot });
 
   const packageRoot = join(installRoot, 'node_modules', 'planr-pipeline');
-  const installedBin = join(
-    installRoot,
-    'node_modules',
-    '.bin',
-    process.platform === 'win32' ? 'planr-pipeline.cmd' : 'planr-pipeline',
-  );
-  const binSmoke = run(installedBin, ['--help'], { cwd: installRoot });
+  const installedBin = join(packageRoot, 'bin', 'planr-pipeline.mjs');
+  const binSmoke = run(process.execPath, [installedBin, '--help'], { cwd: installRoot });
   assert.match(binSmoke.stdout, /planr-pipeline/);
   const importSmoke = run(process.execPath, [
     '--input-type=module',
