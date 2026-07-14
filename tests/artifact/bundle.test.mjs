@@ -12,7 +12,9 @@ import { ARTIFACT_ERROR_CODES } from '../../lib/pipeline/errors.mjs';
 const roots = [];
 
 afterEach(() => {
-  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+  for (const root of roots.splice(0)) {
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+  }
 });
 
 function fixture(prefix = 'planr-artifact-') {
