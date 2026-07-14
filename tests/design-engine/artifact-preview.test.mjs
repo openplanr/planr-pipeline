@@ -64,7 +64,8 @@ test('artifact preview keeps dynamic HTML in an opaque, network-blocked sandbox'
 });
 
 test('artifact preview inline controller parses as JavaScript', () => {
-  const scripts = [...html.matchAll(/^  <script>\n([\s\S]*?)^  <\/script>$/gm)].map((match) => match[1]);
+  const normalizedHtml = html.replace(/\r\n?/g, '\n');
+  const scripts = [...normalizedHtml.matchAll(/^  <script>\n([\s\S]*?)^  <\/script>$/gm)].map((match) => match[1]);
   assert.equal(scripts.length, 1, 'single complete-preview controller found');
   for (const [index, script] of scripts.entries()) {
     const path = join(tmpdir(), `planr-artifact-preview-${process.pid}-${index}.mjs`);
