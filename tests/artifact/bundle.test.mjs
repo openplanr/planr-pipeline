@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { afterEach, test } from 'node:test';
+import { after, test } from 'node:test';
 
 import { bundleArtifact } from '../../lib/artifact/bundle.mjs';
 import { serveStaticFile } from '../../lib/design/path-util.mjs';
@@ -11,7 +11,7 @@ import { ARTIFACT_ERROR_CODES } from '../../lib/pipeline/errors.mjs';
 
 const roots = [];
 
-afterEach(() => {
+after(() => {
   for (const root of roots.splice(0)) {
     rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }

@@ -8,7 +8,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { afterEach, test } from 'node:test';
+import { after, test } from 'node:test';
 
 import { digestArtifactEnvelope, validateArtifactEnvelope } from '../../lib/artifact/envelope.mjs';
 import {
@@ -20,7 +20,7 @@ import { ARTIFACT_ERROR_CODES } from '../../lib/pipeline/errors.mjs';
 
 const roots = [];
 
-afterEach(() => {
+after(() => {
   while (roots.length > 0) {
     rmSync(roots.pop(), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
