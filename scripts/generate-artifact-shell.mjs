@@ -2,7 +2,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSync } from 'esbuild';
 
@@ -170,7 +170,7 @@ function writeAssets(projectRoot, expected) {
     mkdirSync(dirname(path), { recursive: true });
     if (!existsSync(path) || readFileSync(path, 'utf8') !== bytes) {
       writeFileSync(path, bytes, 'utf8');
-      written.push(relative(projectRoot, path));
+      written.push(relative(projectRoot, path).split(sep).join('/'));
     }
   }
   return written;

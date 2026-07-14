@@ -162,7 +162,9 @@ test('startArtifactReview returns a private tokenized session and serves only me
   assert.equal(state.port, parts.port);
   assert.match(state.controlToken, /^[A-Za-z0-9_-]{43}$/);
   assert.match(state.instanceId, /^[A-Za-z0-9_-]{22}$/);
-  assert.equal(statSync(statePath).mode & 0o777, 0o600);
+  if (process.platform !== 'win32') {
+    assert.equal(statSync(statePath).mode & 0o777, 0o600);
+  }
   assert.doesNotMatch(readFileSync(statePath, 'utf8'), /Checkout flow|<html|bridgeNonce/);
 
   const firstClose = review.close();
