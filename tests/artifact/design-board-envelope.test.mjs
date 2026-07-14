@@ -22,7 +22,7 @@ const roots = [];
 
 afterEach(() => {
   while (roots.length > 0) {
-    rmSync(roots.pop(), { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+    rmSync(roots.pop(), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 });
 
