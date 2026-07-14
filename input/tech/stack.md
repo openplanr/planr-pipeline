@@ -143,7 +143,7 @@ MustPreserve:
 
 ## Runtime Dependencies
 
-```yaml
+```text
 Dependencies:
   parse5: "8.0.1 — standards-based HTML parse/serialize"
   esbuild: "0.28.1 — deterministic local-only JS/module/CSS graph bundling"
@@ -156,7 +156,7 @@ DevDependencies:
 
 ## Artifact Review Gates
 
-```yaml
+```text
 ArtifactUnitCommand: "npm run test:artifact"
 ArtifactBrowserCommand: "npm run test:artifact:browser"
 ArtifactContractCommand: "npm run test:artifact:contracts"

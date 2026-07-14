@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,4 +29,14 @@ test('hostile sandbox certification covers Chromium Firefox and WebKit', () => {
   const hostile = read('tests/artifact/sandbox-hostile.test.mjs');
   assert.match(hostile, /\['chromium', 'firefox', 'webkit'\]\.includes\(browserEngine\)/);
   assert.match(hostile, /playwright\[browserEngine\]/);
+});
+
+test('release stack metadata remains valid in spec-driven conformance', () => {
+  for (const fixture of ['spec-driven-todo', 'spec-driven-todo-shipped']) {
+    assert.doesNotThrow(() => execFileSync(process.execPath, [
+      'conformance/runner.mjs',
+      '--runtime', 'cursor',
+      '--validate-schema', `conformance/fixtures/${fixture}`,
+    ], { cwd: root, stdio: 'pipe' }));
+  }
 });
