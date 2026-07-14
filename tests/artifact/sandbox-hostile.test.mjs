@@ -399,7 +399,10 @@ test('real browser keeps dynamic artifacts useful while hostile capabilities fai
   assert.equal(results.rtc, 'SecurityError');
   assert.equal(results.beacon, 'false');
   assert.ok(['SecurityError', 'attempted'].includes(results.topNavigation));
-  assert.equal(results.opfs, 'SecurityError');
+  assert.ok(
+    ['SecurityError', 'TypeError'].includes(results.opfs),
+    'OPFS must fail closed whether the engine denies it or omits the API',
+  );
   assert.equal(results.image, 'blocked');
   assert.equal(results.workerInstance, 'true');
   assert.equal(results.moduleInstance, 'false');
