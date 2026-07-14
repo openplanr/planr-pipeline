@@ -6,7 +6,7 @@ on:
 
 jobs:
   node:
-    name: Node ${{ matrix.node-version }}
+    name: ${{ matrix.os }} / Node ${{ matrix.node-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

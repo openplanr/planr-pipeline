@@ -8,7 +8,7 @@ import { after, test } from 'node:test';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const temp = mkdtempSync(join(tmpdir(), 'planr-artifact-pack-'));
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmCli = process.env.npm_execpath;
 
 after(() => rmSync(temp, { recursive: true, force: true }));
 
@@ -28,8 +28,13 @@ function run(command, args, options = {}) {
   return result;
 }
 
+function runNpm(args, options = {}) {
+  assert.ok(npmCli, 'npm_execpath must identify npm-cli.js during the npm test run');
+  return run(process.execPath, [npmCli, ...args], options);
+}
+
 test('packed 0.26.0 package contains the portable artifact release boundary', () => {
-  const packed = JSON.parse(run(npm, [
+  const packed = JSON.parse(runNpm([
     'pack', '--json', '--ignore-scripts', '--pack-destination', temp,
   ]).stdout)[0];
   const files = new Set(packed.files.map(({ path }) => path));
@@ -63,7 +68,7 @@ test('packed 0.26.0 package contains the portable artifact release boundary', ()
   const installRoot = join(temp, 'install');
   mkdirSync(installRoot, { recursive: true });
   const tarball = join(temp, packed.filename);
-  run(npm, [
+  runNpm([
     'install', '--ignore-scripts', '--no-audit', '--no-fund', '--omit=dev',
     '--no-package-lock', '--prefer-offline', tarball,
   ], { cwd: installRoot });
