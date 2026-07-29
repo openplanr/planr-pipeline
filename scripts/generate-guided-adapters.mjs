@@ -39,8 +39,12 @@ function readJson(projectRoot, path) {
   return JSON.parse(readFileSync(resolve(projectRoot, path), 'utf8'));
 }
 
+function canonicalText(bytes) {
+  return bytes.replace(/\r\n/gu, '\n');
+}
+
 function digest(bytes) {
-  return `sha256:${createHash('sha256').update(bytes, 'utf8').digest('hex')}`;
+  return `sha256:${createHash('sha256').update(canonicalText(bytes), 'utf8').digest('hex')}`;
 }
 
 function runtimeReport(mode) {
@@ -143,7 +147,7 @@ function assertPortableAsset(path, bytes, labels) {
 function renderManifest(projectRoot) {
   const labels = copiedQuestionLabels(projectRoot);
   const assets = RUNTIME_ASSETS.map((path) => {
-    const bytes = readFileSync(resolve(projectRoot, path), 'utf8');
+    const bytes = canonicalText(readFileSync(resolve(projectRoot, path), 'utf8'));
     assertPortableAsset(path, bytes, labels);
     return { path, digest: digest(bytes) };
   });
@@ -169,7 +173,8 @@ function staleTargets(projectRoot, assets) {
   return Object.entries(assets)
     .filter(([target, expected]) => {
       const path = resolve(projectRoot, target);
-      return !existsSync(path) || readFileSync(path, 'utf8') !== expected;
+      return !existsSync(path)
+        || canonicalText(readFileSync(path, 'utf8')) !== canonicalText(expected);
     })
     .map(([target]) => target)
     .sort();

@@ -159,6 +159,31 @@ test('generated adapter docs and runtime-asset digests are current', () => {
   assert.match(rendered['docs/runtime-guided-interactions.md'], /Native presentation is selected only/u);
 });
 
+test('generated adapter checks are stable on CRLF worktrees', () => {
+  const projectRoot = tempRoot();
+  const paths = [
+    'registry/adapters.json',
+    'conformance/fixtures/guided-runtime-parity/questionnaire.json',
+    'conformance/fixtures/guided-runtime-parity/generated-assets.json',
+    'docs/runtime-guided-interactions.md',
+    'adapters/claude-code/README.md',
+    'adapters/codex/skills/planr-operate/SKILL.md',
+    'adapters/codex/project-guidance.md',
+    'adapters/cursor/rules/openplanr-operate.mdc',
+    'commands/operate.md',
+  ];
+  for (const path of paths) {
+    const target = join(projectRoot, path);
+    mkdirSync(dirname(target), { recursive: true });
+    const bytes = readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
+    writeFileSync(target, bytes.replace(/\n/gu, '\r\n'), 'utf8');
+  }
+  assert.deepEqual(
+    runGuidedAdapterGenerator({ argv: ['--check'], projectRoot }),
+    { ok: true, mode: 'check', staleTargets: [] },
+  );
+});
+
 test('static conformance rejects copied questions and implicit authority in adapter assets', () => {
   const projectRoot = tempRoot();
   const paths = [
