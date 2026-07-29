@@ -176,7 +176,7 @@ test('generated adapter checks are stable on CRLF worktrees', () => {
     const target = join(projectRoot, path);
     mkdirSync(dirname(target), { recursive: true });
     const bytes = readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
-    writeFileSync(target, bytes.replace(/\n/gu, '\r\n'), 'utf8');
+    writeFileSync(target, bytes.replace(/\r\n/gu, '\n').replace(/\n/gu, '\r\n'), 'utf8');
   }
   assert.deepEqual(
     runGuidedAdapterGenerator({ argv: ['--check'], projectRoot }),
