@@ -10,6 +10,7 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   assertGuidedCliResult,
@@ -25,7 +26,7 @@ import {
   runGuidedAdapterGenerator,
 } from '../../scripts/generate-guided-adapters.mjs';
 
-const root = new URL('../../', import.meta.url);
+const root = fileURLToPath(new URL('../../', import.meta.url));
 const fixtureRoot = new URL(
   '../../conformance/fixtures/guided-runtime-parity/',
   import.meta.url,
@@ -151,10 +152,10 @@ test('bounded stdin rejects oversized submissions instead of falling back to she
 
 test('generated adapter docs and runtime-asset digests are current', () => {
   assert.deepEqual(
-    runGuidedAdapterGenerator({ argv: ['--check'], projectRoot: root.pathname }),
+    runGuidedAdapterGenerator({ argv: ['--check'], projectRoot: root }),
     { ok: true, mode: 'check', staleTargets: [] },
   );
-  const rendered = renderGuidedAdapterAssets({ projectRoot: root.pathname });
+  const rendered = renderGuidedAdapterAssets({ projectRoot: root });
   assert.match(rendered['docs/runtime-guided-interactions.md'], /Native presentation is selected only/u);
 });
 
