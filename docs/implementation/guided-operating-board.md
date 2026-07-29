@@ -1,6 +1,6 @@
 # OPERATE-SPEC-003 pipeline work item
 
-Umbrella specification: `SPEC-003`  
+Umbrella specification: `SPEC-003`
 Release participant: `planr-pipeline@0.31.0`
 
 This repository owns the additive guided interaction schemas, adapter capability

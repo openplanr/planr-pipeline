@@ -1,6 +1,6 @@
 # SPEC-003 post-implementation security review
 
-Date: 2026-07-29  
+Date: 2026-07-29
 Scope: guided answers/actions, local sessions, evidence diagnostics and
 classification, runtime adapters, provider boundaries.
 

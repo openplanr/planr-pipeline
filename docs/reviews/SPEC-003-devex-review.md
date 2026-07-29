@@ -1,6 +1,6 @@
 # SPEC-003 post-implementation DevEx review
 
-Date: 2026-07-29  
+Date: 2026-07-29
 Scope: guided Operating Board first use, runtime parity, recovery, automation.
 
 ## Result
