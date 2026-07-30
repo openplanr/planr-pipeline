@@ -224,6 +224,33 @@ export interface OperatingAdvisorBrief {
   briefDigest: string;
 }
 
+export interface OperatingAdvisorProposal {
+  proposalKey: string;
+  type: 'finding' | 'decision' | 'data-gap' | 'merge' | 'sequence';
+  title: string;
+  problem: string;
+  proposal: string;
+  impact: 1 | 2 | 3 | 4 | 5;
+  confidence: 1 | 2 | 3 | 4 | 5;
+  ease: 1 | 2 | 3 | 4 | 5;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  evidenceRefs: string[];
+  dependsOnProposalKeys?: string[];
+  conflictsWithProposalKeys?: string[];
+  sequenceProposalKeys?: string[];
+}
+
+/**
+ * Bounded payload returned by a native advisor. OpenPlanr adds cycle, role,
+ * producer, and digest metadata when it creates the canonical role result.
+ */
+export interface OperatingAdvisorResponse {
+  outcome: 'proposals' | 'quiet';
+  proposals: OperatingAdvisorProposal[];
+  gaps: string[];
+  conflicts: string[];
+}
+
 export type OperatingArtifactType = 'markdown' | 'html' | 'json' | 'csv';
 
 export interface OperatingArtifactTemplate {

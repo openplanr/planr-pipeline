@@ -24,7 +24,7 @@ test('Protocol v1.2 schema catalog is complete, parseable, and version-addressab
   const files = readdirSync(join(root, 'schemas/v1.2.0'))
     .filter((file) => file.endsWith('.schema.json'))
     .sort();
-  assert.equal(files.length, 34);
+  assert.equal(files.length, 35);
   for (const file of files) assert.doesNotThrow(() => readJson(`schemas/v1.2.0/${file}`));
 
   const registered = listProtocolSchemas()
@@ -57,6 +57,40 @@ test('operating and adapter registries are schema-valid, unique, and read-only',
       adapter.capabilities.interactiveQuestions,
     )
   )));
+});
+
+test('native operating advisors return compact bounded responses', () => {
+  const response = {
+    outcome: 'proposals',
+    proposals: [{
+      proposalKey: 'technology-risk.reduce-release-risk',
+      type: 'finding',
+      title: 'Reduce release risk',
+      problem: 'The release path has no verified rollback rehearsal.',
+      proposal: 'Add one deterministic rollback canary before the next release.',
+      impact: 4,
+      confidence: 4,
+      ease: 3,
+      severity: 'high',
+      evidenceRefs: ['EVD-release-workflow'],
+    }],
+    gaps: [],
+    conflicts: [],
+  };
+  assert.deepEqual(validateProtocolArtifact('operating-advisor-response', response), []);
+  assert.ok(validateProtocolArtifact('operating-advisor-response', {
+    ...response,
+    cycleId: 'CYCLE-001',
+  }).length, 'native runtimes cannot provide canonical engine metadata');
+  assert.ok(validateProtocolArtifact('operating-advisor-response', {
+    ...response,
+    outcome: 'quiet',
+  }).length, 'quiet responses cannot contain proposals');
+  assert.ok(validateProtocolArtifact('operating-advisor-response', {
+    ...response,
+    outcome: 'proposals',
+    proposals: [],
+  }).length, 'proposal responses require at least one proposal');
 });
 
 test('hash-chained operating fixtures validate with strict top-level envelopes', () => {

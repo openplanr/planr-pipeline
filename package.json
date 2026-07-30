@@ -36,6 +36,7 @@
     "docs/adrs/ADR-005-artifact-review-sharing-security.md",
     "docs/adrs/ADR-006-operating-board-protocol.md",
     "docs/adrs/ADR-008-cli-owned-guided-interactions.md",
+    "docs/adrs/ADR-009-intent-scoped-native-operating-cycles.md",
     "docs/artifact-review.md",
     "docs/guided-operating-board.md",
     "docs/generated/",

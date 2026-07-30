@@ -28,6 +28,7 @@
         "headlessBridge": true,
         "artifactReview": true,
         "operatingBoard": true,
+        "operatingAdvisorDispatch": "native-isolated",
         "interactiveQuestions": "native"
       },
       "assets": ["commands", "agents", "procedures", "hooks", "templates", "schemas", "artifact-review", "guided-interaction"],
@@ -63,6 +64,7 @@
         "headlessBridge": true,
         "artifactReview": true,
         "operatingBoard": true,
+        "operatingAdvisorDispatch": "native-bounded",
         "interactiveQuestions": "native"
       },
       "assets": ["skills", "project-guidance", "schemas", "templates", "artifact-review", "guided-interaction"],
@@ -98,6 +100,7 @@
         "headlessBridge": false,
         "artifactReview": true,
         "operatingBoard": true,
+        "operatingAdvisorDispatch": "structured-provider",
         "interactiveQuestions": "chat"
       },
       "assets": ["rules", "roles", "schemas", "templates", "artifact-review", "guided-interaction"],

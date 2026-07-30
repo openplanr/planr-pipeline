@@ -22,29 +22,41 @@ answer types. Do not copy question definitions, infer missing answers or
 defaults, rebuild commands from chat, or edit operating configuration to answer
 a question.
 
-After a preview, ask separately for the exact named action. Echo only the
-CLI-returned command and confirmation digest for that choice. A field answer or
-prior confirmation never authorizes initialization, cycle start, provider use,
-route application, PLAN, or SHIP. Stop after each selected non-read-only action.
-Never add `--yes`, execute prose-only legacy `next` strings, or treat a previous
-answer as authority for the next action.
+Treat an explicit request to **run one Operating Board cycle** as authority for
+that cycle's reversible local continuation only. Preview first, then execute the
+CLI-returned cycle start and its digest-bound adapter prepare, record, finalize,
+resume, Chair, and read-only report steps until the cycle is `reviewable`,
+`blocked`, or `failed`. Do not ask the user to paste or manually rerun those
+internal commands. `--yes` may be supplied only to the exact cycle-start action
+selected by that explicit request; never infer it from a questionnaire answer,
+a generic request for status, or a prior action.
 
-When the CLI returns `E_OPERATE_SECRET_DETECTED`, use only the returned
-`planr operate evidence diagnose …` command. Present its value-free recovery
-choices and stop for the user's selection. Never trial-edit sources or
-`.planr/operate` state to isolate a candidate. Exact false-positive
-classification requires its own reason, preview digest, and confirmation;
-known credential signatures remain blocked.
+Ask separately for external provider consent, finding acceptance, route
+application or rollback, planning-artifact creation, PLAN, SHIP, and every
+external effect. A field answer or prior confirmation never authorizes one of
+those boundaries. Never execute prose-only legacy `next` strings.
+
+When the CLI reports quarantined evidence, continue with the sanitized eligible
+evidence if the returned cycle action remains available. Use
+`planr operate evidence diagnose …` only when the CLI reports that required
+evidence is blocked. Present its value-free recovery choices and stop for the user's
+selection. Never trial-edit sources or `.planr/operate` state to isolate a
+candidate. Exact false-positive classification requires its own reason, preview
+digest, and confirmation; known credential signatures remain blocked.
 
 Canonical advisory lenses: {{OPERATING_LENSES}}. They are independent,
 read-only executive perspectives—not delivery agents and not permission to
-role-play without evidence. A native runtime must follow the exact handoff returned
-by `planr operate run`, obtain each immutable digest-bound `rolePack` from
-`planr operate adapter prepare`, run every independent pack with enforced
-empty-tool isolation, and record only its schema-valid result. Finalize those
-results, rerun the same cycle, and execute the separately prepared Chair pack only
-after the independent results are verified. If the runtime cannot enforce that
-isolation, use the structured provider path or fail closed.
+role-play without evidence. A native runtime must follow the exact handoff
+returned by `planr operate run`, obtain each immutable digest-bound `rolePack`
+from `planr operate adapter prepare`, and dispatch every independent pack using
+the adapter's declared `operatingAdvisorDispatch` mode. In `native-bounded`
+mode, advisors may use only the supplied role pack and must not inspect the
+workspace, environment, network, or other tools. In `native-isolated` mode,
+retain the certified empty-tool isolation boundary. Record the compact advisor
+response (`operating-advisor-response@1.2.0`) through the CLI so OpenPlanr
+creates IDs and digests. Finalize those results, rerun the same cycle, and
+execute the separately prepared Chair pack only after the independent results
+are verified.
 
 1. Run the requested `planr operate` command with `--json` when machine-readable
    output is available. Before a new cycle, use the CLI preview so the user can
@@ -75,10 +87,14 @@ isolation, use the structured provider path or fail closed.
 9. Use `planr operate run --review-only` to reconcile already-produced shipment
    proof and due outcome observations without evidence collection or model
    calls. It observes SHIP; it never starts SHIP.
-10. Summarize the cited brief, decisions, gaps, proposed routes, warnings, and
-    next actions. In a planning-only installation, keep help, inspect, and demo
-    usable; surface the CLI's exact `E_PIPELINE_NOT_INSTALLED` recovery for
-    everything requiring Protocol v1.2.
+10. Present the cycle brief plus the CEO, CTO, CPO, CMO, COO, and Chair reports
+    in the user's requested format. Prefer concise Markdown for chat and strict
+    JSON for automation. Include exact finding/route commands and planning
+    targets offered by the CLI. The visual dashboard is optional, never the
+    only result.
+11. In a planning-only installation, keep help, inspect, and demo usable;
+    surface the CLI's exact `E_PIPELINE_NOT_INSTALLED` recovery for everything
+    requiring Protocol v1.2.
 
 Never invoke SHIP, deploy, publish, spend, contact customers, apply a one-way
 door, or call `planr-pipeline` directly. Runtime adapters may dispatch advisory

@@ -7,11 +7,11 @@ business questions or infer authority.
 
 ## Certified presentation paths
 
-| Runtime | Declared ceiling | Deterministic fallback | Tool isolation |
-|---|---|---|---|
-| claude-code | native | native → chat → terminal → none | enforced |
-| codex | native | native → chat → terminal → none | advisory |
-| cursor | chat | chat → terminal → none | advisory |
+| Runtime | Declared ceiling | Deterministic fallback | Advisor dispatch | Tool isolation |
+|---|---|---|---|---|
+| claude-code | native | native → chat → terminal → none | native-isolated | enforced |
+| codex | native | native → chat → terminal → none | native-bounded | advisory |
+| cursor | chat | chat → terminal → none | structured-provider | advisory |
 
 The declared mode is a capability ceiling, not proof that a tool exists in the
 active session. Native presentation is selected only after a positive runtime
@@ -25,14 +25,15 @@ and emits a named diagnostic. `none` is a fail-closed handoff.
 3. Present the untouched questionnaire through the resolved interaction mode.
 4. Submit typed answers as one bounded JSON envelope on stdin.
 5. Render the CLI preview without applying it.
-6. Ask for a distinct selection of the named non-read-only action.
-7. Echo only that action's exact confirmation digest and command.
-8. Stop after the action. Cycle start, provider use, route apply, PLAN, and SHIP
-   are separate choices.
+6. Treat an explicit request to run one cycle as selection of the exact
+   cycle-start action.
+7. Continue its reversible native adapter lifecycle to a terminal cycle state.
+8. Ask separately for external provider consent, finding acceptance, route
+   mutation, planning-artifact creation, PLAN, SHIP, and external effects.
 
-A field answer, prose approval, a previous confirmation, or adapter capability
-never authorizes `--yes`. Adapters never launch another coding runtime and
-never invoke the nested pipeline executable.
+A field answer, generic prose approval, a previous confirmation, or adapter
+capability never authorizes an unrelated action. Adapters never launch another
+coding runtime and never invoke the nested pipeline executable.
 
 ## Parity guarantee
 

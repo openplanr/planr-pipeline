@@ -74,6 +74,7 @@ planr operate init
 planr operate run --preview # no provider/model calls and no writes
 planr operate run --dry-run # disclosed provider/model calls; no state commit
 planr operate review
+planr operate report --lens CTO
 ```
 
 Initialization and recovery are guided by CLI-owned, schema-valid questions and
@@ -81,6 +82,13 @@ actions. Certified runtimes present those artifacts using native questions,
 structured chat, an attached terminal, or an exact handoff; adapters do not
 invent defaults or implicit consent. See
 [`docs/guided-operating-board.md`](docs/guided-operating-board.md).
+
+An explicit cycle request continues the reversible local native lifecycle
+through independent CEO/CTO/CPO/CMO/COO advisors, Chair consolidation, and
+Markdown or JSON reporting without manual adapter commands. Claude Code uses
+isolated dispatch, Codex uses immutable-pack bounded dispatch, and Cursor uses
+the structured-provider path. The dashboard is optional, and reports include
+exact governed paths into specs, tasks, and quick tasks.
 
 Finding acceptance never applies a route. Pipeline-PO DEV application pauses at
 `awaiting-plan`, returns an exact native PLAN command, validates planning
