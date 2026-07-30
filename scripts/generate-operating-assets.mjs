@@ -31,6 +31,10 @@ function readJson(projectRoot, path) {
   return JSON.parse(readFileSync(resolve(projectRoot, path), 'utf8'));
 }
 
+function readCanonicalText(projectRoot, path) {
+  return readFileSync(resolve(projectRoot, path), 'utf8').replace(/\r\n?/gu, '\n');
+}
+
 function assertUniqueIds(label, records) {
   const ids = records.map(({ id }) => id);
   if (new Set(ids).size !== ids.length) {
@@ -96,17 +100,17 @@ export function renderOperatingAssets({ projectRoot = root } = {}) {
     );
   }
   return {
-    'adapters/codex/skills/planr-operate/SKILL.md': readFileSync(
-      resolve(projectRoot, 'templates/runtime/planr-operate-skill.md.tpl'),
-      'utf8',
+    'adapters/codex/skills/planr-operate/SKILL.md': readCanonicalText(
+      projectRoot,
+      'templates/runtime/planr-operate-skill.md.tpl',
     ).replace('{{OPERATING_LENSES}}', operatingLensSummary(roles)),
-    'adapters/cursor/rules/openplanr-operate.mdc': readFileSync(
-      resolve(projectRoot, 'templates/runtime/planr-operate-cursor.mdc.tpl'),
-      'utf8',
+    'adapters/cursor/rules/openplanr-operate.mdc': readCanonicalText(
+      projectRoot,
+      'templates/runtime/planr-operate-cursor.mdc.tpl',
     ).replace('{{OPERATING_LENSES}}', operatingLensSummary(roles)),
-    'commands/operate.md': readFileSync(
-      resolve(projectRoot, 'templates/runtime/planr-operate-command.md.tpl'),
-      'utf8',
+    'commands/operate.md': readCanonicalText(
+      projectRoot,
+      'templates/runtime/planr-operate-command.md.tpl',
     ).replace('{{OPERATING_LENSES}}', operatingLensSummary(roles)),
     'docs/generated/adapters.md': renderAdapterDocs(adapters),
     'docs/generated/operating-providers.md': renderOperatingProviderDocs(providers),
