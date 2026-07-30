@@ -87,7 +87,8 @@ and emits a named diagnostic. \`none\` is a fail-closed handoff.
 1. Run the public \`planr operate … --json\` command.
 2. Validate each returned questionnaire and structured action.
 3. Present the untouched questionnaire through the resolved interaction mode.
-4. Submit typed answers as one bounded JSON envelope on stdin.
+4. Assemble typed answers only from the questionnaire's self-describing
+   \`submission\` contract and send one bounded JSON envelope on stdin.
 5. Render the CLI preview without applying it.
 6. Treat an explicit request to run one cycle as selection of the exact
    cycle-start action.

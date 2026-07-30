@@ -10,7 +10,7 @@
     },
     {
       "path": "adapters/codex/skills/planr-operate/SKILL.md",
-      "digest": "sha256:e35fd2186fe950de09e5ecd78d8be67997058c075596298f0730ad4de24749d0"
+      "digest": "sha256:0525bb7df14f197dd06ef783c77b3e11ec9903739c9f4320f16c30de1128bb20"
     },
     {
       "path": "adapters/codex/project-guidance.md",
@@ -18,11 +18,11 @@
     },
     {
       "path": "adapters/cursor/rules/openplanr-operate.mdc",
-      "digest": "sha256:0d84cd03a66172de300fc792e924fca04ceccbd1c70fbf7f8c77d5a02534fe51"
+      "digest": "sha256:d8974b1d69285231994665f076b2f4602c05a7334f893c67add42c9365416847"
     },
     {
       "path": "commands/operate.md",
-      "digest": "sha256:1c111710cf30440a2767a904a4f29345f7eb1457811fbb0f0cf9c7a1bcc01b16"
+      "digest": "sha256:7c23db1ca13bf04a9154a6941c385ee97844b220277389f197f32fb83694b45e"
     }
   ]
 }

@@ -16,12 +16,29 @@ deterministic consolidation, state, route previews, recovery, and outcome
 reconciliation. Never edit `.planr/operate` directly and never invoke
 `planr-pipeline` as a nested executable.
 
+Start guided setup with exactly `planr operate init --json`. Guided mode is the
+self-describing response from that command; there is no `--guided` flag. Do not
+probe `operate --help` or `init --help` to discover the questionnaire transport.
+
 Consume only schema-valid `questionnaire` and `actions` returned by the CLI.
 Present questions verbatim through a positively verified native question
 surface; otherwise downgrade to structured chat, an attached terminal, or the
 CLI's named handoff. Submit typed answers only through the bounded stdin/resume
 lifecycle. Never copy question definitions, infer missing answers, or
 reconstruct commands from conversation.
+
+For a self-describing questionnaire, copy `submission.envelope.fixedFields`
+verbatim, resolve its declared dynamic fields, and for each chosen descriptor
+copy only the fields named by `answers.copyFields`, then add `value`. Treat
+`required` and `valueType` as constraints, never answer-envelope properties.
+Connect one complete bounded JSON document and EOF before launching
+`submission.transport.argv` as tokens. Never launch a bare `--stdin` action
+against a terminal and wait to send input later. Prefer native argv-plus-stdin
+execution. A shell-only runtime may use one bounded pipe that closes EOF in the
+same invocation only for `public` or `internal` answers; higher-sensitivity
+answers require the CLI handoff and must not enter argv, shell text, logs, or
+temporary files. Never guess metadata. If `submission` is absent, return the
+compatible CLI update/handoff.
 
 An explicit request to run one Operating Board cycle selects the exact
 CLI-returned cycle-start action and authorizes only its reversible local native
@@ -30,6 +47,19 @@ perform adapter prepare/record/finalize, resume, Chair, and report steps without
 asking the user to paste commands. Ask separately for external provider consent,
 finding acceptance, route application or rollback, planning-artifact creation,
 PLAN, SHIP, and external effects.
+
+Treat every top-level `handoff` as the only lifecycle command contract. Execute
+only its current `handoff.next[].argv` token arrays, never an action from a prior
+state. For `adapter.record`, resolve `dispatch.rolePackPointer` and
+`stdin.schemaPointer` against the retained `adapter.prepare` JSON result and
+submit exactly one bounded compact response. Independent advisor inference may
+run in parallel, but adapter lifecycle mutations are serial: execute only the
+single current `adapter.record`, wait for its returned handoff, then record the
+next role. Retain each role's exact serialized response until finalization and
+replay it byte-for-byte after a transport failure; never regenerate or rephrase
+a recorded response. Use `handoff.recovery` only after a failed current action.
+Never derive, suffix, or replace a returned idempotency key, lease, digest,
+cycle, role, runtime, or argv token; never probe machine commands with `--help`.
 
 Treat `--preview` as provider-free and write-free; `--dry-run` may use a
 disclosed, consented provider but commits no state. Configure component roots
@@ -48,9 +78,10 @@ without evidence. Native advisor work must consume the digest-bound `rolePacks`
 returned by `planr operate adapter prepare` under the adapter's declared
 `operatingAdvisorDispatch` mode. `native-bounded` advisors may use only that pack
 and no workspace, environment, network, or tool access; `native-isolated`
-advisors retain empty-tool isolation. Record compact
-`operating-advisor-response@1.2.0` responses through the CLI, finalize
-independent results, rerun the same cycle, and prepare the Chair separately.
+advisors retain empty-tool isolation. Return exactly the compact object
+described by `rolePack.roleBrief.output.jsonSchema`; do not add canonical result
+metadata. Submit that `operating-advisor-response@1.2.0` object through the CLI,
+finalize independent results, rerun the same cycle, and prepare the Chair separately.
 Never improvise or widen a role prompt.
 
 Planning-only installations retain help, `inspect`, and `demo`; surface the

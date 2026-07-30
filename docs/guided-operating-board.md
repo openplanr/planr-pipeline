@@ -18,9 +18,10 @@ planr operate report
 In an interactive terminal, the CLI asks the questions directly. In a coding
 runtime, the installed `planr-operate` workflow requests `--json`, presents the
 returned questionnaire through a verified native question surface or structured
-chat, and sends the typed answer envelope on bounded stdin. If neither is
+chat, then constructs the typed answer envelope from the questionnaire's
+self-describing `submission` contract and sends it on bounded stdin. If neither is
 available, it returns the exact terminal handoff. Adapters never invent answers,
-defaults, questions, commands, or consent.
+defaults, questions, commands, envelope metadata, or consent.
 
 One explicit request to run a cycle selects its exact cycle-start action and
 authorizes the reversible local adapter lifecycle through independent advisors,
@@ -37,6 +38,47 @@ may not inspect the workspace, environment, network, or other tools. Cursor
 uses the structured-provider path. All adapters return
 `operating-advisor-response@1.2.0`; OpenPlanr owns canonical metadata and
 digests.
+
+### Native adapter handoff
+
+When a native cycle reaches an advisor boundary, the public `run` result returns
+a validated `operating-adapter-handoff` in `prepare-required` state. It is the
+complete machine contract for that boundary, not a hint that a runtime must
+turn into commands. Its `phase`, `state`, `binding`, and `roles` bind every
+current action to the exact cycle, evidence digest, runtime, lease,
+idempotency key, and expiry. Lease and expiry are null until prepare succeeds.
+
+The runtime must:
+
+1. execute only the current `handoff.next[].argv` token arrays exactly as
+   returned;
+2. for a record action, resolve its role pack and compact response schema from
+   the retained `adapter.prepare` result using the declared absolute pointers;
+3. use the same returned lease and idempotency key—never add a role suffix or
+   derive a replacement; and
+4. use `handoff.recovery` only after a failed current action.
+
+The state sequence is `prepare-required` → `record-required` →
+`finalize-required` → `continue-required`. Each successful record returns a
+fresh handoff containing only unfinished role actions. Recovery contains
+read-only resume and machine-local cancel only while recording/finalizing.
+Cancelled sessions expose no executable action.
+Runtimes must not reconstruct lifecycle commands from prose, probe them with
+`--help`, or guess the next phase. On an error, follow the exact returned
+handoff or named recovery action. A new Chair handoff is prepared only after
+independent advisor results have been finalized and committed.
+
+Lifecycle effects remain deliberately bounded:
+
+| Action | Effect |
+|---|---|
+| `prepare`, `record`, `cancel` | `machine-local-write` |
+| `resume` | `read-only` |
+| `finalize`, `continue` | `project-write` |
+
+These machine-only actions never authorize finding acceptance, route
+application, planning artifacts, PLAN, SHIP, provider consent, or an external
+effect.
 
 ## Evidence recovery
 

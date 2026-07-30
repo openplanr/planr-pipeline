@@ -13,6 +13,10 @@ those behaviors.
 
 ## Guided interaction
 
+Start guided setup with exactly `planr operate init --json`. Guided mode is the
+self-describing response from that command; there is no `--guided` flag. Do not
+probe `operate --help` or `init --help` to discover the questionnaire transport.
+
 Consume only schema-valid `questionnaire` and `actions` returned by the CLI.
 Present questions verbatim through the active runtime's verified interaction
 surface; if native questions are unavailable, use structured chat, then an
@@ -22,6 +26,23 @@ answer types. Do not copy question definitions, infer missing answers or
 defaults, rebuild commands from chat, or edit operating configuration to answer
 a question.
 
+For a self-describing questionnaire, construct the JSON document only from its
+`submission` contract: copy `submission.envelope.fixedFields` verbatim, resolve
+`questionnaireDigest` from the declared `/digest` pointer, and for each chosen
+descriptor copy only the fields named by `answers.copyFields`, then add `value`.
+Treat `required` and `valueType` as constraints, never answer-envelope
+properties. Omit only unanswered optional descriptors and set `submittedAt`
+from the runtime clock.
+Serialize once. Before launch, connect the complete bounded document and EOF to
+stdin, then execute `transport.argv` as argument tokens. Never launch a bare
+`--stdin` action against a terminal and wait to send input later. Prefer the
+runtime's native argv-plus-stdin process API. A shell-only runtime may use one
+bounded pipe that closes EOF in the same invocation only when every answer is
+classified `public` or `internal`; for higher-sensitivity answers, return the CLI
+handoff instead of putting JSON in argv, shell text, logs, or temporary files. Do
+not guess envelope metadata. If `submission` is absent, return the CLI's
+compatible update/handoff instead of reverse-engineering it.
+
 Treat an explicit request to **run one Operating Board cycle** as authority for
 that cycle's reversible local continuation only. Preview first, then execute the
 CLI-returned cycle start and its digest-bound adapter prepare, record, finalize,
@@ -30,6 +51,19 @@ resume, Chair, and read-only report steps until the cycle is `reviewable`,
 internal commands. `--yes` may be supplied only to the exact cycle-start action
 selected by that explicit request; never infer it from a questionnaire answer,
 a generic request for status, or a prior action.
+
+Treat every top-level `handoff` as the only lifecycle command contract. Execute
+only its current `handoff.next[].argv` token arrays, never an action from a prior
+state. For `adapter.record`, resolve `dispatch.rolePackPointer` and
+`stdin.schemaPointer` against the retained `adapter.prepare` JSON result and
+submit exactly one bounded compact response. Independent advisor inference may
+run in parallel, but adapter lifecycle mutations are serial: execute only the
+single current `adapter.record`, wait for its returned handoff, then record the
+next role. Retain each role's exact serialized response until finalization and
+replay it byte-for-byte after a transport failure; never regenerate or rephrase
+a recorded response. Use `handoff.recovery` only after a failed current action.
+Never derive, suffix, or replace a returned idempotency key, lease, digest,
+cycle, role, runtime, or argv token; never probe machine commands with `--help`.
 
 Ask separately for external provider consent, finding acceptance, route
 application or rollback, planning-artifact creation, PLAN, SHIP, and every
@@ -52,11 +86,13 @@ from `planr operate adapter prepare`, and dispatch every independent pack using
 the adapter's declared `operatingAdvisorDispatch` mode. In `native-bounded`
 mode, advisors may use only the supplied role pack and must not inspect the
 workspace, environment, network, or other tools. In `native-isolated` mode,
-retain the certified empty-tool isolation boundary. Record the compact advisor
-response (`operating-advisor-response@1.2.0`) through the CLI so OpenPlanr
-creates IDs and digests. Finalize those results, rerun the same cycle, and
-execute the separately prepared Chair pack only after the independent results
-are verified.
+retain the certified empty-tool isolation boundary. Return exactly the compact
+object described by `rolePack.roleBrief.output.jsonSchema`; do not add
+`kind`, cycle, role, input-digest, producer, or result-digest metadata. Record
+that `operating-advisor-response@1.2.0` object through the CLI so OpenPlanr
+creates and binds canonical metadata and digests. Finalize those results, rerun
+the same cycle, and execute the separately prepared Chair pack only after the
+independent results are verified.
 
 1. Run the requested `planr operate` command with `--json` when machine-readable
    output is available. Before a new cycle, use the CLI preview so the user can

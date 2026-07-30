@@ -9,10 +9,27 @@ provider-free and write-free; `--dry-run` is write-free but can be
 provider-backed and billable. Never edit events, immutable records, journals,
 projections, routes, or outcome links under `.planr/operate`.
 
+Start guided setup with exactly `planr operate init --json`. Guided mode is the
+self-describing response from that command; there is no `--guided` flag. Do not
+probe `operate --help` or `init --help` to discover the questionnaire transport.
+
 Consume only schema-valid `questionnaire` and `actions` returned by the CLI.
 Present questions through a verified runtime question surface, structured chat,
 or an attached terminal. Submit typed answers through the bounded stdin/resume
 lifecycle. Never copy questions, infer answers, or reconstruct commands.
+
+For a self-describing questionnaire, copy `submission.envelope.fixedFields`
+verbatim, resolve its declared dynamic fields, and for each chosen descriptor
+copy only the fields named by `answers.copyFields`, then add `value`. Treat
+`required` and `valueType` as constraints, never answer-envelope properties.
+Connect one complete bounded JSON document and EOF before launching
+`submission.transport.argv` as tokens. Never launch a bare `--stdin` action
+against a terminal and wait to send input later. Prefer native argv-plus-stdin
+execution. A shell-only runtime may use one bounded pipe that closes EOF in the
+same invocation only for `public` or `internal` answers; higher-sensitivity
+answers require the CLI handoff and must not enter argv, shell text, logs, or
+temporary files. Never guess metadata. If `submission` is absent, return the
+compatible CLI update/handoff.
 
 An explicit request to run one Operating Board cycle authorizes the exact
 CLI-returned cycle start and its reversible local adapter lifecycle through
@@ -21,15 +38,29 @@ finalize, resume, Chair, and read-only report steps without asking the user to
 paste commands. Ask separately for provider consent, finding acceptance, route
 application or rollback, planning artifacts, PLAN, SHIP, and external effects.
 
+Treat every top-level `handoff` as the only lifecycle command contract. Execute
+only its current `handoff.next[].argv` token arrays, never an action from a prior
+state. For `adapter.record`, resolve `dispatch.rolePackPointer` and
+`stdin.schemaPointer` against the retained `adapter.prepare` JSON result and
+submit exactly one bounded compact response. Independent advisor inference may
+run in parallel, but adapter lifecycle mutations are serial: execute only the
+single current `adapter.record`, wait for its returned handoff, then record the
+next role. Retain each role's exact serialized response until finalization and
+replay it byte-for-byte after a transport failure; never regenerate or rephrase
+a recorded response. Use `handoff.recovery` only after a failed current action.
+Never derive, suffix, or replace a returned idempotency key, lease, digest,
+cycle, role, runtime, or argv token; never probe machine commands with `--help`.
+
 Canonical advisory lenses: CEO (strategy-finance: Direction, business model, pricing and packaging, focus, economics, and what to stop.); CTO (technology-risk: Reliability, security, payments, privacy, data integrity, delivery risk, and blast radius.); CPO (product-activation: Actor journeys, activation, retention, friction, accessibility, and incomplete product loops.); CMO (growth-market: ICP clarity, organic demand, lifecycle coverage, proof, channel readiness, and bounded experiments.); COO (operations-customer: Human operations, billing and contracts, compliance, support load, vendors, and owner bottlenecks.); Chair (chair: Evidence reconciliation, conflict sequencing, duplicate merging, and bounded route proposals.). They are read-only and separate
 from delivery roles. Native advisor work must use the digest-bound `rolePacks`
 returned by `planr operate adapter prepare` under the declared
 `operatingAdvisorDispatch` mode. A `native-bounded` advisor uses only the
 supplied pack and no workspace, environment, network, or tools; a
-`native-isolated` advisor retains empty-tool isolation. Record compact
-`operating-advisor-response@1.2.0` values through the CLI, finalize independent
-results, and prepare the Chair separately. Never improvise or role-play beyond
-the supplied evidence.
+`native-isolated` advisor retains empty-tool isolation. Return exactly the
+compact object described by `rolePack.roleBrief.output.jsonSchema`; do not add
+canonical result metadata. Submit that `operating-advisor-response@1.2.0`
+object through the CLI, finalize independent results, and prepare the Chair
+separately. Never improvise or role-play beyond the supplied evidence.
 
 Keep finding acceptance and route application separate. Preserve
 `awaiting-plan` and its exact PLAN handoff; resuming requires matching planning

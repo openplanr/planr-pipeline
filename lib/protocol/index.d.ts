@@ -212,7 +212,8 @@ export interface OperatingAdvisorBrief {
     minimum: Record<string, JsonValue>;
   };
   output: {
-    schema: string;
+    schema: 'operating-advisor-response@1.2.0';
+    jsonSchema: Record<string, JsonValue>;
     allowedProposalTypes: string[];
     maximumProposals: number;
     maximumOutputBytes: number;
@@ -249,6 +250,64 @@ export interface OperatingAdvisorResponse {
   proposals: OperatingAdvisorProposal[];
   gaps: string[];
   conflicts: string[];
+}
+
+export type OperatingAdapterHandoffState =
+  | 'prepare-required'
+  | 'record-required'
+  | 'finalize-required'
+  | 'continue-required'
+  | 'cancelled';
+
+export interface OperatingAdapterMachineAction {
+  id: string;
+  action:
+    | 'adapter.prepare'
+    | 'adapter.record'
+    | 'adapter.finalize'
+    | 'adapter.resume'
+    | 'adapter.cancel'
+    | 'run.continue';
+  effect: 'read-only' | 'machine-local-write' | 'project-write';
+  role?: string;
+  argv: string[];
+  dispatch?: {
+    source: 'adapter.prepare-result';
+    rolePackPointer: string;
+    isolation: 'enforced-empty-tools';
+  };
+  stdin?: {
+    kind: 'stdin-json';
+    mediaType: 'application/json';
+    encoding: 'utf-8';
+    maxBytes: 32768;
+    schema: 'https://openplanr.dev/schemas/v1.2.0/operating-advisor-response.schema.json';
+    schemaSource: 'adapter.prepare-result';
+    schemaPointer: string;
+  };
+}
+
+export interface OperatingAdapterHandoff {
+  kind: 'operating-adapter-handoff';
+  schemaVersion: '1.0.0';
+  protocolVersion: '1.2.0';
+  phase: 'advisors' | 'chair';
+  state: OperatingAdapterHandoffState;
+  binding: {
+    cycleId: string;
+    evidenceDigest: string;
+    runtime: string;
+    idempotencyKey: string;
+    lease: string | null;
+    expiresAt: string | null;
+  };
+  roles: Array<{
+    roleId: string;
+    status: 'awaiting-prepare' | 'pending' | 'recorded';
+    inputDigest: string | null;
+  }>;
+  next: OperatingAdapterMachineAction[];
+  recovery: OperatingAdapterMachineAction[];
 }
 
 export type OperatingArtifactType = 'markdown' | 'html' | 'json' | 'csv';
@@ -421,6 +480,24 @@ export function listOperatingRoles(): Array<Record<string, JsonValue>>;
 export function listOperatingProviders(): Array<Record<string, JsonValue>>;
 export function createOperatingAdvisorBrief(roleId: string): OperatingAdvisorBrief;
 export function listOperatingAdvisorBriefs(): OperatingAdvisorBrief[];
+export function createOperatingAdapterHandoff(input: {
+  phase: 'advisors' | 'chair';
+  state: OperatingAdapterHandoffState;
+  cycleId: string;
+  evidenceDigest: string;
+  runtime: string;
+  idempotencyKey: string;
+  lease?: string | null;
+  expiresAt?: string | null;
+  roles: Array<{
+    roleId: string;
+    status: 'awaiting-prepare' | 'pending' | 'recorded';
+    inputDigest?: string | null;
+  }>;
+}): OperatingAdapterHandoff;
+export function validateOperatingAdapterHandoffBindings(
+  value: OperatingAdapterHandoff,
+): OperatingAdapterHandoff;
 export function operatingProviderPolicyPayload(
   manifest: OperatingProviderManifest,
 ): OperatingProviderPolicyPayload;

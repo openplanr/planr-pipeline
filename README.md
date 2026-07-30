@@ -80,7 +80,8 @@ planr operate report --lens CTO
 Initialization and recovery are guided by CLI-owned, schema-valid questions and
 actions. Certified runtimes present those artifacts using native questions,
 structured chat, an attached terminal, or an exact handoff; adapters do not
-invent defaults or implicit consent. See
+invent defaults or implicit consent. Schema 1.1 questionnaires carry their exact
+bounded-stdin envelope contract, so a runtime never guesses resume metadata. See
 [`docs/guided-operating-board.md`](docs/guided-operating-board.md).
 
 An explicit cycle request continues the reversible local native lifecycle
