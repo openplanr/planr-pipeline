@@ -37,7 +37,12 @@ import { createOperatingDecisionBriefArtifact } from '../lib/operate/decision-br
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
 const fixture = (name) => readJson(`conformance/fixtures/operating-board/${name}`);
-const fileDigest = (path) => `sha256:${createHash('sha256').update(readFileSync(join(root, path))).digest('hex')}`;
+// Digest over canonical LF bytes: the gate proves CONTENT identity, and a
+// CRLF checkout on Windows is platform translation, not a modification. The
+// recorded goldens were computed from LF working trees.
+const fileDigest = (path) => `sha256:${createHash('sha256')
+  .update(readFileSync(join(root, path), 'utf8').replace(/\r\n?/gu, '\n'))
+  .digest('hex')}`;
 
 function compareVersions(left, right) {
   const l = left.split('.').map(Number);
