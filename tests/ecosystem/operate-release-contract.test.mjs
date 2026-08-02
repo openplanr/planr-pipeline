@@ -109,6 +109,7 @@ test('verifies exact npm artifacts and final skills release', async () => {
 
 test('requires a one-line Protocol v1.2 inspection from the installed CLI', () => {
   const value = verifyInstalledOperateCli({
+    platform: 'linux',
     command: 'planr',
     spawn(command, args, options) {
       assert.equal(command, 'planr');
