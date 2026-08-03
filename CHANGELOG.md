@@ -4,6 +4,54 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [0.40.0] — 2026-08-04
+
+Six workflows shipped two implementations each — a Claude Code command and a
+portable skill that re-derived the same procedure from scratch — and a grep for
+any reference from the skill back to the command returned zero. That is the
+structural cause of a failure mode this project has hit repeatedly: a fix lands
+on one path while the other stays broken, because every change has to land twice
+and the second landing is the one that gets forgotten. This release collapses
+each pair onto a single procedure file and freezes the command surface so the
+duplication cannot come back.
+
+### Added
+
+- `registry/frozen-commands.json` — the closed, declared list of the nine
+  commands that exist, each tagged with whether it has a portable skill alias.
+  `tests/orchestration/frozen-command-surface.test.mjs` enforces it
+  bidirectionally: a new `commands/*.md` that is not in the registry fails the
+  suite, and a registry entry with no file on disk fails it too. New workflows
+  ship as skills only; the alias list can shrink by attrition but never grow.
+- `procedures/sync-workflow.md` — the SYNC procedure, extracted verbatim from
+  the inline body of `commands/sync.md` so both runtimes can name one file.
+  `tests/orchestration/sync-extraction-accounting.test.mjs` proves the
+  extraction lossless against a frozen pre-extraction fixture: every line of the
+  original survives in the router or the procedure, with nothing dropped.
+- `scripts/check-workflow-alias-parity.mjs` (`npm run check:workflow-aliases`,
+  wired into `npm test`) — asserts each convergent skill both carries the
+  delegation phrase and names the **identical file path** its command reads.
+  Pointing at the same file is the check; "both paths succeed" is not, since
+  two independent implementations that both pass is precisely the state this
+  release removes.
+
+### Changed
+
+- `commands/sync.md` — reduced from a 98-line inline procedure to a thin router
+  that delegates to `procedures/sync-workflow.md`.
+- `adapters/codex/skills/{planr-sync,planr-ship,planr-design,planr-dashboard}/SKILL.md`
+  — each replaces its re-derived copy of the flow with a delegation to the one
+  procedure its command reads, generalizing the pattern `planr-plan` already
+  used.
+
+### Compatibility
+
+- No command or skill name is removed, added, or renamed — all nine commands and
+  every skill still resolve, and `check:guided-adapters` is unchanged.
+- `operate` is deliberately excluded from the shared-pointer set: its Claude Code
+  and portable texts are runtime-differentiated by design, and collapsing them
+  would change dispatch semantics rather than packaging.
+
 ## [0.39.0] — 2026-08-02
 
 The Protocol v1.4 operating handoff learns to fan out per-role recording, renew a

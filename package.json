@@ -1,6 +1,6 @@
 {
   "name": "planr-pipeline",
-  "version": "0.39.0",
+  "version": "0.40.0",
   "private": false,
   "type": "module",
   "description": "OpenPlanr complete PO, Design, DEV, QA, and delivery pipeline",
@@ -80,13 +80,14 @@
     "pngjs": "7.0.0"
   },
   "scripts": {
-    "test": "npm run test:schema && npm run test:orchestration && npm run test:docs && npm run test:design && npm run test:design-engine && npm run test:artifact && npm run test:dashboard && npm run check:operating-assets && npm run check:guided-adapters && npm run conformance:operate && npm run conformance:design && npm run conformance:design-loop && npm run conformance:artifact && npm run conformance:dashboard",
+    "test": "npm run test:schema && npm run test:orchestration && npm run test:docs && npm run test:design && npm run test:design-engine && npm run test:artifact && npm run test:dashboard && npm run check:operating-assets && npm run check:guided-adapters && npm run check:workflow-aliases && npm run conformance:operate && npm run conformance:design && npm run conformance:design-loop && npm run conformance:artifact && npm run conformance:dashboard",
     "generate:artifact-shell": "node scripts/generate-artifact-shell.mjs",
     "check:artifact-shell": "node scripts/generate-artifact-shell.mjs --check",
     "generate:operating-assets": "node scripts/generate-operating-assets.mjs",
     "check:operating-assets": "node scripts/generate-operating-assets.mjs --check",
     "generate:guided-adapters": "node scripts/generate-guided-adapters.mjs",
     "check:guided-adapters": "node scripts/generate-guided-adapters.mjs --check",
+    "check:workflow-aliases": "node scripts/check-workflow-alias-parity.mjs",
     "test:guided-adapters": "node --test tests/orchestration/guided-runtime-adapters.test.mjs",
     "test:guided-acceptance": "node --test tests/ecosystem/guided-operate-acceptance.test.mjs",
     "test:artifact": "node scripts/run-test-group.mjs tests/artifact",
