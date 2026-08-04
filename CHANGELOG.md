@@ -4,6 +4,62 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [Unreleased]
+
+### Fixed
+
+- The artifact review privacy scan no longer rejects prose. `planr artifact open`
+  refused an HTML report whose only URL-shaped content was `file://` quoted inside
+  an escaped `<code>` fragment — a whole-document substring scan doing an asset
+  scan's job. The final-HTML check is now scoped to genuine asset references
+  (`src`, `href`, `srcset`, CSS `url()`, and friends), which remain resolved or
+  rejected exactly as before: remote and `file://` URLs in attributes still fail
+  closed, and the script/style network protections are untouched. Text cannot
+  trigger a fetch; assets still cannot escape the room.
+- The dashboard's operate reader now distinguishes "an operating cycle exists but
+  no public projection was emitted" (`legacy-state-present`, with an actionable
+  upgrade hint rendered in the dashboard) from "operate never ran" (`absent`).
+  Previously both looked identical, and the dashboard had never been able to
+  display a cycle produced by the current CLI.
+
+
+The Operating Board can now record a conflict between a proposed action and a
+published product commitment, not only between two proposed actions. A real board
+run hit the gap head-on: the Chair found that shipping opt-in usage telemetry —
+needed to measure the charter's adoption metric — would contradict the product's
+published "No telemetry is added" promise, but the response schema could express
+a conflict only as a tension between two `actionKeys`. With no second action to
+name, the Chair had to drop the entry and demote one of the most
+decision-relevant findings a board exists to surface down to a gap. This makes
+that tension expressible.
+
+### Changed
+
+- `schemas/v1.4.0/operating-advisor-response.schema.json` — a `conflicts[]` item
+  is now one of two shapes (`oneOf`, the schema family's only conditional idiom):
+  the existing action-vs-action conflict, whose two-`actionKey` floor is
+  unchanged, or a new action-vs-commitment conflict carrying an optional
+  `commitmentRef` — `{ path, statement }`, a repository-relative document path
+  reusing the family's traversal-safe path pattern plus the verbatim commitment
+  text (`maxLength` 500, `additionalProperties: false`). A conflict that names a
+  `commitmentRef` needs only one `actionKey`; every other conflict still needs
+  two. The change is additive: no field was removed, renamed, or made stricter
+  for existing payloads.
+
+### Compatibility
+
+- The advisor-response schema carries no in-band version const, so — unlike the
+  SPEC-005 adapter-handoff bump — the gate here is the schema shape itself, keyed
+  by the `v1.4.0` directory and the `operating-advisor-response@1.4.0` registry
+  entry. Fail-closed is structural in both directions. A reader on the prior v1.4
+  schema (or the frozen v1.2/v1.3 shapes) rejects a commitment conflict twice
+  over: `additionalProperties: false` refuses the unknown `commitmentRef`, and
+  the unconditional `minItems: 2` refuses its single `actionKey` — so an old
+  reader can never silently accept or mis-parse the new form. A reader on the new
+  schema accepts every existing conflict byte-for-byte, because an
+  action-vs-action conflict is exactly the first `oneOf` branch. The frozen
+  v1.2.0/v1.3.0 advisor-response schemas and their golden digests are untouched.
+
 ## [0.40.0] — 2026-08-04
 
 Six workflows shipped two implementations each — a Claude Code command and a

@@ -54,6 +54,7 @@ test('production dashboard registers a lazy read-only Operating route and styles
   assert.match(shell, /label: 'Operating'/);
   assert.match(index, /styles\/operate\.css/);
   assert.match(view, /planr operate review/);
+  assert.match(view, /legacy-state-present/);
   assert.doesNotMatch(view, /method:\\s*['"](?:POST|PATCH|PUT|DELETE)/);
   assert.match(css, /\.op-thread/);
   assert.match(css, /@media \(max-width: 760px\)/);
