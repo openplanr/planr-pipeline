@@ -4,7 +4,7 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
-## [Unreleased]
+## [0.41.0] — 2026-08-04
 
 ### Fixed
 
