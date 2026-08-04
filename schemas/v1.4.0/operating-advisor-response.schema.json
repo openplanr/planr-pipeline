@@ -44,6 +44,42 @@
       }
     },
     "gaps": { "type": "array", "maxItems": 20, "items": { "type": "object", "additionalProperties": false, "required": ["id", "question", "impact"], "properties": { "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" }, "question": { "type": "string", "minLength": 1, "maxLength": 4096 }, "impact": { "type": "string", "minLength": 1, "maxLength": 4096 }, "ownerRequired": { "type": "boolean" } } } },
-    "conflicts": { "type": "array", "maxItems": 20, "items": { "type": "object", "additionalProperties": false, "required": ["id", "summary", "actionKeys"], "properties": { "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" }, "summary": { "type": "string", "minLength": 1, "maxLength": 4096 }, "actionKeys": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" } } } } }
+    "conflicts": {
+      "type": "array", "maxItems": 20,
+      "description": "A conflict is either a tension between two proposed actions (actionKeys, two-action floor) or a tension between a proposed action and a published product commitment (commitmentRef, one-action floor). The commitment form lets a board record, for example, that shipping an action would contradict a promise a repository publicly makes to its users.",
+      "items": {
+        "oneOf": [
+          {
+            "title": "action-vs-action conflict",
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "summary", "actionKeys"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+              "summary": { "type": "string", "minLength": 1, "maxLength": 4096 },
+              "actionKeys": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" } }
+            }
+          },
+          {
+            "title": "action-vs-commitment conflict",
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "summary", "actionKeys", "commitmentRef"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+              "summary": { "type": "string", "minLength": 1, "maxLength": 4096 },
+              "actionKeys": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" } },
+              "commitmentRef": {
+                "type": "object", "additionalProperties": false,
+                "description": "The published commitment the action contradicts: a repository-relative document path plus the verbatim commitment statement.",
+                "required": ["path", "statement"],
+                "properties": {
+                  "path": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+                  "statement": { "type": "string", "minLength": 1, "maxLength": 500 }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
   }
 }

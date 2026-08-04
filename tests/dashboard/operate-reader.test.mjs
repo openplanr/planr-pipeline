@@ -73,6 +73,26 @@ test('operating reader is absent-safe, read-only, and never exposes machine path
   assert.deepEqual(JSON.parse(readFileSync(projectionPath, 'utf8')), fixture);
 }));
 
+test('operating reader distinguishes a legacy CLI state layout from a never-run board', () => withPlanrDir((planrDir) => {
+  const legacyStatePath = join(planrDir, 'operate/.state/state.json');
+  writeJson(legacyStatePath, { note: 'internal CLI state — never parsed by the reader' });
+
+  const legacy = readOperatingProjection(planrDir);
+  assert.equal(legacy.status, 'legacy-state-present');
+  assert.equal(legacy.available, false);
+  assert.equal(legacy.readOnly, true);
+  assert.equal(legacy.path, '.planr/operate/projections/state.json');
+  assert.equal(legacy.state, null);
+  assert.match(legacy.hint, /operate cycle exists/i);
+  assert.match(legacy.hint, /projections\/state\.json/);
+  assert.match(legacy.legacyStateMtime, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(JSON.stringify(legacy).includes(planrDir), false);
+
+  // A real public projection always wins over the internal legacy layout.
+  writeJson(join(planrDir, 'operate/projections/state.json'), fixture);
+  assert.equal(readOperatingProjection(planrDir).status, 'ready');
+}));
+
 test('operating reader surfaces invalid and stale state without repairing it', () => withPlanrDir((planrDir) => {
   const projectionPath = join(planrDir, 'operate/projections/state.json');
   writeJson(projectionPath, { ...fixture, protocolVersion: '9.9.9' });

@@ -697,10 +697,6 @@ test('privacy scan rejects machine paths, remotes, environment access, secrets, 
     ['repository remote', '<p>git@example.test:team/private.git</p>'],
     ['git scheme repository remote', '<p>git://example.test/team/private.git</p>'],
     ['git+ssh repository remote', '<p>git+ssh://example.test/team/private.git</p>'],
-    ['FTP URL', '<p>ftp://example.test/private.txt</p>', ARTIFACT_ERROR_CODES.EXTERNAL_ASSET],
-    ['file URL', '<p>file:///tmp/private.txt</p>', ARTIFACT_ERROR_CODES.EXTERNAL_ASSET],
-    ['WebSocket URL', '<p>ws://example.test/socket</p>', ARTIFACT_ERROR_CODES.EXTERNAL_ASSET],
-    ['secure WebSocket URL', '<p>wss://example.test/socket</p>', ARTIFACT_ERROR_CODES.EXTERNAL_ASSET],
     ['environment access', '<script>console.log(process.env.SECRET)</script>'],
     ['private key', '<pre>-----BEGIN PRIVATE KEY-----</pre>'],
   ];
@@ -719,4 +715,46 @@ test('privacy scan rejects machine paths, remotes, environment access, secrets, 
       expectCode(ARTIFACT_ERROR_CODES.REDACTION),
     );
   });
+});
+
+test('remote-asset rejection is attribute-scoped, so URL-shaped prose survives', async (t) => {
+  // Inert text that mentions a URL cannot trigger a fetch, so it must bundle.
+  // The `file://` case is the reported regression: an advisor quoting a command
+  // inside an escaped <code> fragment must not read as a remote asset.
+  const allowed = [
+    ['file:// quoted in escaped <code>', '<p>Run <code>open file://review/report.html</code> to preview.</p>'],
+    ['https URL in body text', '<p>See https://example.com for the changelog.</p>'],
+    ['protocol-relative text in a comment', '<!-- mirror at //cdn.example.test/app.js --><p>ok</p>'],
+    ['ftp URL in body text', '<p>Legacy drop at ftp://example.test/private.txt is retired.</p>'],
+    ['websocket URLs in body text', '<p>Sockets ws://example.test/socket and wss://example.test/socket.</p>'],
+  ];
+  for (const [name, body] of allowed) {
+    await t.test(`allowed: ${name}`, async () => {
+      const root = fixture();
+      write(root, 'index.html', `<!doctype html><html><body>${body}</body></html>`);
+      const result = await bundleArtifact('index.html', { root });
+      assert.equal(result.remoteAssetCount, 0);
+    });
+  }
+
+  // Genuine fetchable references stay blocked, in `reject` mode so no network is
+  // touched. `file://` in an attribute must still fail — a served review room
+  // stays self-contained.
+  const blocked = [
+    ['remote <img src>', '<img src="https://cdn.example.test/a.png">'],
+    ['remote CSS url() in a style attribute', '<div style="background:url(https://cdn.example.test/a.png)">x</div>'],
+    ['remote srcset candidate', '<img srcset="https://cdn.example.test/a.png 2x">'],
+    ['protocol-relative src', '<img src="//cdn.example.test/a.png">'],
+    ['file:// in a src attribute', '<img src="file:///etc/passwd">'],
+  ];
+  for (const [name, body] of blocked) {
+    await t.test(`blocked: ${name}`, async () => {
+      const root = fixture();
+      write(root, 'index.html', `<!doctype html><html><body>${body}</body></html>`);
+      await assert.rejects(
+        bundleArtifact('index.html', { root, remoteAssets: 'reject' }),
+        expectCode(ARTIFACT_ERROR_CODES.EXTERNAL_ASSET),
+      );
+    });
+  }
 });
