@@ -4,6 +4,34 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 > **Note:** Plugin renamed from `openplanr-pipeline` to `planr-pipeline` in v0.7.0 (brand convergence on the `planr` CLI binary). Entries from v0.6.0 and earlier reference the old name verbatim.
 
+## [0.42.0] — 2026-08-05
+
+### Changed
+
+- `createOperatingAdvisorBrief` requires an explicit `protocolVersion`. The
+  previous silent default to `1.2.0` allowed a frozen legacy contract to reach a
+  Protocol v1.4 mandate in a consuming runtime, because the version guard only
+  rejected an explicit disallowed value. **Breaking for library consumers**:
+  callers that omitted the argument now receive
+  `E_OPERATE_LEGACY_BRIEF_VERSION_REQUIRED`.
+- The `1.3.0` branch of the same function is no longer dead. It was accepted at
+  the version gate while the body hardcoded `1.2.0` in both the schema lookup
+  and the returned artifact.
+
+### Added
+
+- `doctor --release` fails under `--strict` when `CHANGELOG.md` has no section
+  for the version being released, and the publish workflow runs that audit
+  before `npm publish`. Versions 0.37.0, 0.37.1 and 0.37.2 were tagged and
+  published with no changelog entry; nothing detected it.
+
+### Fixed
+
+- README no longer states macOS/Linux/WSL-only support while documenting a
+  Windows installer and running a Windows CI leg.
+- Model references in the agent map, rules, pipeline overview, and ship command
+  no longer contradict the portability claim they sit under.
+
 ## [0.41.0] — 2026-08-04
 
 ### Fixed
