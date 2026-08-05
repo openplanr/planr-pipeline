@@ -22,6 +22,13 @@ jobs:
       - run: npm run test:artifact:packed
       - run: npm run conformance:artifact
       - run: npm pack --dry-run
+      # The release record must exist before the release does. Three versions
+      # (0.37.0, 0.37.1, 0.37.2) were tagged and published to npm with no
+      # CHANGELOG section at all, because this check lived only in a checklist a
+      # human follows. Under --strict a missing section fails the audit, so a
+      # release cannot be published without its record.
+      - name: Refuse to publish a version the changelog does not document
+        run: node scripts/doctor.mjs --release --strict
       - run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
