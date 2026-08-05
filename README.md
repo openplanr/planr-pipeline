@@ -291,7 +291,7 @@ Vendor model strings are confined to the native adapter and are not part of the 
 
 ## Caveats
 
-- **macOS / Linux / WSL only** for v0.1. The Stop hook uses POSIX shell. Windows-native support lands in v0.2.
+- **Windows is supported; one optional hook still needs a POSIX shell.** macOS, Linux, WSL, and Windows all run the pipeline — the installer above ships a PowerShell path, and CI runs the test, conformance, and operate-canary suites on `windows-latest` alongside Linux and macOS. The exception is the optional Claude Code `Stop` hook in `hooks/hooks.json`, whose command is POSIX shell (`test -f` / `rm -f`); on Windows it needs a POSIX shell such as Git Bash or WSL. That hook only clears the `.claude/.snapshot-pending` sentinel and prints a reminder when `/ship` aborts before its snapshot step — without it the sentinel is simply cleared on the next completed `/ship`.
 - **No deploy automation, ever** — by design. The DevOps agent generates docker-compose / CI config, but the plugin will not run `docker compose up` or any cloud API. You ship.
 - **Subagents have isolated context.** They can't see your conversation. They read files. Pass information by writing to disk, not by chat.
 

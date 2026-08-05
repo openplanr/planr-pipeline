@@ -56,7 +56,7 @@ for (const role of listOperatingRoles()) {
       throw new Error(`Operating role ${role.id} advertises invalid route kind ${routeKind}.`);
     }
   }
-  const brief = createOperatingAdvisorBrief(role.id);
+  const brief = createOperatingAdvisorBrief(role.id, { protocolVersion: '1.2.0' });
   if (
     brief.role.mandate !== role.mandate
     || brief.output.maximumProposals !== (role.budgets.maxProposals ?? role.budgets.maxActions)

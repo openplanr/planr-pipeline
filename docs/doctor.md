@@ -77,4 +77,4 @@ them.
 | Ecosystem | Update sibling marketplace, skills, and OpenPlanr docs after owner repo changes. |
 | Daemons | Run `planr doctor --fix`; it previews, confirms, rechecks, and removes only stale Planr-owned daemon state. |
 | Credentials | Keep project `.env` files with `OPENAI_API_KEY` ignored, or move the key to user-level credentials. |
-| Releases | Create the missing tag or GitHub release, then rerun `npm run doctor -- --release --strict`. |
+| Releases | Add the `## [<version>]` section to `CHANGELOG.md`, create the missing tag or GitHub release, then rerun `npm run doctor -- --release --strict`. |

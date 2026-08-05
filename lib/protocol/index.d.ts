@@ -189,10 +189,16 @@ export interface OperatingProviderPolicyPayload {
   };
 }
 
+/**
+ * Pack-style briefs are compatibility-only; only these protocol versions may
+ * request one. A v1.4 session dispatches a role mandate instead.
+ */
+export type LegacyBriefProtocolVersion = '1.2.0' | '1.3.0';
+
 export interface OperatingAdvisorBrief {
   kind: 'operating-advisor-brief';
   schemaVersion: '1.0.0';
-  protocolVersion: '1.2.0';
+  protocolVersion: LegacyBriefProtocolVersion;
   role: {
     id: string;
     displayLabel: string;
@@ -212,7 +218,7 @@ export interface OperatingAdvisorBrief {
     minimum: Record<string, JsonValue>;
   };
   output: {
-    schema: 'operating-advisor-response@1.2.0';
+    schema: 'operating-advisor-response@1.2.0' | 'operating-advisor-response@1.3.0';
     jsonSchema: Record<string, JsonValue>;
     allowedProposalTypes: string[];
     maximumProposals: number;
@@ -593,7 +599,10 @@ export function assertProtocolArtifact<T>(
 ): T;
 export function listOperatingRoles(): Array<Record<string, JsonValue>>;
 export function listOperatingProviders(): Array<Record<string, JsonValue>>;
-export function createOperatingAdvisorBrief(roleId: string): OperatingAdvisorBrief;
+export function createOperatingAdvisorBrief(
+  roleId: string,
+  options: { protocolVersion: LegacyBriefProtocolVersion },
+): OperatingAdvisorBrief;
 export function listOperatingAdvisorBriefs(): OperatingAdvisorBrief[];
 export function createOperatingAdapterHandoff(input: {
   phase: 'bootstrap' | 'advisors' | 'chair';

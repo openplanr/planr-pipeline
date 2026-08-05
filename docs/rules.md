@@ -56,13 +56,17 @@ with no PNG would still yield `tasks_per_us = 1` and no UI task.)
 
 ---
 
-### R3 — Model Assignments Are Fixed
+### R3 — Capability Tiers Are Fixed; Adapters Own the Model Mapping
 ```
-Sonnet 5 → DB Agent, Designer Agent, Specification Agent, Entity Scaffold Agent
-Opus 4.8   → Frontend Agent, Backend Agent
+analysis-high      → DB Agent, Designer Agent, Specification Agent,
+                     Entity Scaffold Agent, DevOps Agent, Doc-Gen Agent
+implementation-high → Frontend Agent, Backend Agent
+read-only-qa       → QA Agent
 ```
-Rationale: Sonnet 5 is sufficient for analysis, decomposition, and **structured** schema→scaffold output (Entity Scaffold Agent — Step 0.2). Opus 4.8 is required for exploratory multi-file DEV codegen (Frontend + Backend task implementation).
-Never swap these without updating all agent frontmatter files and `docs/agent-model-map.md`.
+Rationale: `analysis-high` is sufficient for analysis, decomposition, and **structured** schema→scaffold output (Entity Scaffold Agent — Step 0.2). `implementation-high` is required for exploratory multi-file DEV codegen (Frontend + Backend task implementation).
+
+The tier is the portable, rule-level assignment: `registry/roles.json` is authoritative and is what every runtime adapter reads. **No vendor model string is part of this rule or of the protocol.** Each runtime adapter maps a tier onto whatever it runs — the Claude Code adapter does so in `agents/*.md` frontmatter, and `docs/agent-model-map.md` records that adapter's current mapping and why.
+Never change a role's tier without updating `registry/roles.json`, the agent files, and `docs/agent-model-map.md`.
 
 ---
 
