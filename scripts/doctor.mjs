@@ -204,6 +204,29 @@ function remoteTagExists(cwd, tag) {
   return result.status === 0;
 }
 
+/**
+ * A tag and a published release are not evidence that a version was documented.
+ * Three versions shipped with no changelog section before this gate existed, so
+ * the release audit now requires a heading naming the version being released.
+ */
+function checkChangelogEntry(version) {
+  const changelogPath = join(root, 'CHANGELOG.md');
+  if (!existsSync(changelogPath)) {
+    warn('release.changelog', 'Releases', 'CHANGELOG.md is missing; the release audit cannot confirm the version is documented', 'Restore CHANGELOG.md at the repository root.', true);
+    return;
+  }
+
+  const changelog = readFileSync(changelogPath, 'utf8');
+  // Match `## [1.2.3]` or `## 1.2.3`; the lookahead stops 0.41 from passing on
+  // the strength of a `## [0.41.0]` heading.
+  const heading = new RegExp(`^##\\s*\\[?${version.replace(/\./g, '\\.')}\\]?(?![0-9.])`, 'm');
+  if (heading.test(changelog)) {
+    ok('release.changelog', 'Releases', `CHANGELOG.md documents ${version}`);
+  } else {
+    warn('release.changelog', 'Releases', `CHANGELOG.md has no section for ${version}`, `Add a "## [${version}]" section to CHANGELOG.md before tagging and publishing.`, true);
+  }
+}
+
 function checkRelease(id, label, cwd, version) {
   const tag = `v${version}`;
 
@@ -603,6 +626,7 @@ async function runArtifactChecks() {
 }
 
 function runReleaseChecks(pkg) {
+  checkChangelogEntry(pkg.version);
   checkRelease('release.pipeline', 'planr-pipeline', root, pkg.version);
 
   const skillsRoot = ecosystem.repositories.skills?.path;

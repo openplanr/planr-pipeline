@@ -2,16 +2,22 @@
 
 > Full description of the PO → DEV 2-Phase Pipeline with all stages, agents, and data flows.
 
+> **Model names in the stage diagrams below are the Claude Code native adapter's
+> current mapping, not a protocol rule.** The portable assignment is the
+> capability tier in `registry/roles.json` (R3 in `docs/rules.md`); each adapter
+> resolves a tier to whatever it runs. See `docs/agent-model-map.md` for the
+> Claude Code mapping and its rationale.
+
 ---
 
 ## Core Principle
 
 The pipeline enforces a **hard separation** between two activities:
 
-| Activity | Phase | Who | Agents |
-|----------|-------|-----|--------|
-| Understand & Decompose | PO Phase (Step 1) | PO + Tech Lead review | Sonnet 5 |
-| Build & Generate | DEV Phase (Step 3) | Tech Lead review | Opus 4.8 |
+| Activity | Phase | Who | Capability tier |
+|----------|-------|-----|-----------------|
+| Understand & Decompose | PO Phase (Step 1) | PO + Tech Lead review | `analysis-high` |
+| Build & Generate | DEV Phase (Step 3) | Tech Lead review | `implementation-high` |
 
 A **mandatory human checkpoint** exists between them.
 The framework refuses to auto-chain PO Phase → DEV Phase.

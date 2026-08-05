@@ -2,6 +2,14 @@
 
 > Why each agent uses its assigned model. Never reassign without reading this.
 
+> **Scope: the Claude Code native adapter only.** The portable, rule-level
+> assignment is a **capability tier** (`analysis-high`, `implementation-high`,
+> `read-only-qa`) held in `registry/roles.json` — see R3 in `docs/rules.md`. No
+> vendor model string below is part of the protocol, and no other adapter is
+> bound by this table; Cursor and Codex map the same tiers onto whatever they
+> run. What follows records how the Claude Code adapter resolves each tier today
+> (mirrored in `agents/*.md` frontmatter) and the reasoning behind it.
+
 ---
 
 ## Assignment Table

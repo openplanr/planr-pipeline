@@ -81,6 +81,10 @@ The release audit checks:
 - `skills` bundle has a version and the marketplace points to it.
 - `marketplace/ecosystem.json` is generated from the released component and adapter versions.
 - `OpenPlanr` has a package version and published release when checked.
+- `CHANGELOG.md` carries a `## [<version>]` section for the version being
+  released. A tag and a published release are not evidence that a version was
+  documented — v0.37.0, v0.37.1, and v0.37.2 were tagged and published while the
+  changelog jumped straight from 0.38.0 to 0.36.1.
 - Git tags and GitHub releases exist for versioned repos.
 - Cross-repo graph output matches through `npm run ecosystem:conformance -- --strict`.
 - Operating Board is advertised only after the marketplace resolves Protocol
